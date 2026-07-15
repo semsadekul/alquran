@@ -62,7 +62,7 @@ export function QuranReaderClient({
       window.scrollBy({ top: -100, behavior: 'smooth' });
     },
     onTogglePlay: () => {
-      if (playback.state.isPlaying) playback.pause();
+      if (playback.state.isPlaying) playback.togglePlayPause();
       else playback.playCurrentSurahFromStart(verses); // simplified
     }
   });
