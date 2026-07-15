@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Al Quran Offline</string>
+    <string name="title_activity_main">Al Quran Offline</string>
+    <string name="package_name">com.sadek.alquran</string>
+    <string name="custom_url_scheme">com.sadek.alquran</string>
+</resources>

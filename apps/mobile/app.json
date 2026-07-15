@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Al Quran",
+    "slug": "al-quran",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#0b1114"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0b1114"
+      },
+      "package": "com.alquran.ecosystem"
+    },
+    "plugins": []
+  }
+}

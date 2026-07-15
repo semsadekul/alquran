@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Auth / Users ──────────────────────────────────────────────
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookmarks   Bookmark[]
+  highlights  Highlight[]
+  notes       Note[]
+  collections Collection[]
+  readingHistory ReadingHistory[]
+}
+
+// ── Quran Content ─────────────────────────────────────────────
+
+model QuranSurah {
+  number                Int    @id
+  name                  String
+  englishName           String
+  englishNameTranslation String
+  numberOfAyahs         Int
+  revelationType        String
+
+  ayahs QuranAyah[]
+}
+
+model QuranAyah {
+  id           Int    @id @default(autoincrement())
+  number       Int    @unique            // global ayah number
+  surahNumber  Int
+  ayahInSurah  Int
+  arabic       String
+  bangla       String
+  english      String
+  transliteration String
+  banglaTransliteration String?
+
+  surah QuranSurah @relation(fields: [surahNumber], references: [number])
+  @@index([surahNumber])
+  @@index([ayahInSurah])
+}
+
+// ── Hadith Content ────────────────────────────────────────────
+
+model HadithCollection {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  nameArabic  String
+  nameEnglish String
+  nameBangla  String?
+  description String?
+  totalHadith Int?
+
+  books HadithBook[]
+}
+
+model HadithBook {
+  id           String @id @default(cuid())
+  collectionId String
+  number       Int
+  nameArabic   String
+  nameEnglish  String
+  nameBangla   String?
+  totalHadith  Int?
+
+  collection HadithCollection @relation(fields: [collectionId], references: [id])
+  chapters   HadithChapter[]
+  entries    HadithEntry[]
+  @@index([collectionId])
+}
+
+model HadithChapter {
+  id           String @id @default(cuid())
+  bookId       String
+  number       Int
+  nameArabic   String
+  nameEnglish  String
+  nameBangla   String?
+
+  book    HadithBook    @relation(fields: [bookId], references: [id])
+  entries HadithEntry[]
+  @@index([bookId])
+}
+
+model HadithEntry {
+  id             String @id @default(cuid())
+  collectionId   String
+  bookId         String
+  chapterId      String?
+  numberInBook   Int
+  arabic         String
+  bangla         String?
+  english        String?
+  narrator       String?
+  grade          String?
+  gradeSource    String?
+  references     Json?
+
+  collection HadithCollection @relation(fields: [collectionId], references: [id])
+  book       HadithBook       @relation(fields: [bookId], references: [id])
+  chapter    HadithChapter?   @relation(fields: [chapterId], references: [id])
+  @@index([collectionId])
+  @@index([bookId])
+  @@index([chapterId])
+}
+
+// ── User Library ──────────────────────────────────────────────
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String   // "quran" | "hadith" | "book"
+  sourceId  String   // "2_2" for quran, hadith id, etc.
+  surah     Int?
+  ayah      Int?
+  surahName String?
+  textPreview String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  @@unique([userId, source, sourceId])
+  @@index([userId])
+}
+
+model Highlight {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String
+  sourceId  String
+  color     String   @default("gold")
+  startOffset Int?
+  endOffset   Int?
+  text        String?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String
+  sourceId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User             @relation(fields: [userId], references: [id])
+  items CollectionItem[]
+  @@index([userId])
+}
+
+model CollectionItem {
+  id           String   @id @default(cuid())
+  collectionId String
+  source       String
+  sourceId     String
+  addedAt      DateTime @default(now())
+  sortOrder    Int      @default(0)
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  @@index([collectionId])
+}
+
+model ReadingHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String
+  sourceId  String
+  surah     Int?
+  ayah      Int?
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId, timestamp])
+}
+
+// ── Audio ─────────────────────────────────────────────────────
+
+model Reciter {
+  id        String @id @default(cuid())
+  name      String
+  nameArabic String?
+  language  String @default("ar")
+  style     String?
+  audioBaseUrl String
+
+  playlists AudioPlaylist[]
+}
+
+model AudioPlaylist {
+  id         String @id @default(cuid())
+  userId     String?
+  reciterId  String
+  name       String
+  surahStart Int?
+  surahEnd   Int?
+  createdAt  DateTime @default(now())
+
+  reciter Reciter @relation(fields: [reciterId], references: [id])
+  @@index([userId])
+}

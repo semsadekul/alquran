@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Al-Quran (Offline) - Read, Listen & Search</title>
+
+  <meta name="description" content="A beautiful offline-first Quran application with Bangla translation, English translation, transliteration, search, and recitations.">
+  <meta name="theme-color" content="#071B14">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23071B14'/><circle cx='256' cy='256' r='200' fill='none' stroke='%23EAB308' stroke-width='10'/><path d='M256 90 L280 150 L345 150 L295 190 L315 250 L256 210 L197 250 L217 190 L167 150 L232 150 Z' fill='%23EAB308'/></svg>">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body data-theme="dark">
+  <div class="ambient-backdrop" aria-hidden="true">
+    <div class="ambient-orbit orbit-one"></div>
+    <div class="ambient-orbit orbit-two"></div>
+    <div class="ambient-grid"></div>
+    <div class="ambient-particle particle-one"></div>
+    <div class="ambient-particle particle-two"></div>
+    <div class="ambient-particle particle-three"></div>
+  </div>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-header compact-brand-panel">
+          <div class="brand-top-row">
+            <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar" aria-label="Collapse sidebar">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+          </div>
+          <div class="brand-lockup">
+            <div class="brand-logo">
+              <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="512" height="512" rx="100" fill="#071B14"/>
+                <path d="M256 420c80 0 140-30 140-30V150s-60 30-140 30-140-30-140-30v240s60 30 140 30z" fill="#0F2C22" stroke="#EAB308" stroke-width="12" stroke-linejoin="round"/>
+                <path d="M256 180c-60 0-110-20-110-20v210s50 20 110 20M256 180c60 0 110-20 110-20v210s-50 20-110 20" stroke="#EAB308" stroke-width="10" stroke-linecap="round"/>
+                <path d="M256 180v230" stroke="#EAB308" stroke-width="10"/>
+                <path d="M256 120v40M256 410v20" stroke="#EAB308" stroke-width="12" stroke-linecap="round"/>
+                <circle cx="256" cy="256" r="220" stroke="#EAB308" stroke-width="6" stroke-dasharray="20 10"/>
+              </svg>
+            </div>
+            <div class="brand-title">
+              Al-Quran
+              <span>Offline Portal</span>
+            </div>
+          </div>
+          <div class="sidebar-sync-badge">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Offline Ready</span>
+          </div>
+        </div>
+
+        <div class="sidebar-section library-section lower-library-panel">
+          <div class="sidebar-section-header">
+            <div>
+              <div class="sidebar-section-label">Surah Library</div>
+              <p class="sidebar-section-caption">Browse and reopen your reading list</p>
+            </div>
+            <button class="sidebar-search-launch" id="sidebar-search-launch" type="button" title="Open search" aria-label="Open search overlay">
+              <i class="fa-solid fa-sparkles"></i>
+            </button>
+          </div>
+
+          <div class="sidebar-mini-cluster">
+            <div class="sidebar-subsection-title">Recently Opened</div>
+            <div class="sidebar-mini-list" id="recent-surahs-list">
+              <div class="mini-empty-state">Open a Surah to keep it here.</div>
+            </div>
+          </div>
+
+          <div class="sidebar-search">
+            <div class="search-wrapper glass-input">
+              <i class="fa fa-magnifying-glass"></i>
+              <input type="text" class="search-input" id="surah-search" placeholder="Search Surah name, number, or meaning" aria-label="Filter surahs">
+            </div>
+          </div>
+          <div class="sidebar-list-container">
+            <ul class="sidebar-list" id="surah-list-items" role="list" aria-label="Surah list"></ul>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar app-top-nav">
+        <div class="page-title-area">
+          <button class="menu-toggle" id="menu-toggle-btn" title="Toggle Sidebar" aria-label="Toggle sidebar">
+            <i class="fa fa-bars"></i>
+          </button>
+          <div>
+            <p class="topbar-kicker">Al-Quran Offline Portal</p>
+            <h2 id="active-view-title">Holy Quran</h2>
+          </div>
+        </div>
+
+        <nav class="top-nav-tabs" aria-label="Primary navigation">
+          <button class="top-nav-btn active" data-tab="dashboard" data-top-nav="true" title="Dashboard" aria-label="Home">
+            <i class="fa fa-house"></i>
+            <span>Home</span>
+          </button>
+          <button class="top-nav-btn" data-tab="reader" data-top-nav="true" title="Quran Reader" aria-label="Quran Reader">
+            <i class="fa fa-book-open"></i>
+            <span>Quran</span>
+          </button>
+          <button class="top-nav-btn" data-tab="bookmarks" data-top-nav="true" title="Bookmarks" aria-label="Bookmarks">
+            <i class="fa fa-bookmark"></i>
+            <span>Bookmarks</span>
+          </button>
+          <button class="top-nav-btn" data-tab="hifz" data-top-nav="true" title="Hifz" aria-label="Hifz">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Hifz</span>
+          </button>
+        </nav>
+
+        <div class="top-bar-controls top-bar-utility-row">
+          <button class="top-utility-btn" id="global-search-btn" type="button" aria-label="Open search">
+            <span class="topbar-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <span class="topbar-search-copy">
+              <strong>Search</strong>
+              <small>Ctrl K</small>
+            </span>
+          </button>
+          <button class="top-utility-btn" id="top-audio-shortcut" type="button" aria-label="Focus audio player">
+            <span class="topbar-search-icon"><i class="fa-solid fa-headphones"></i></span>
+            <span class="topbar-search-copy">
+              <strong>Listening</strong>
+              <small>Full Surah</small>
+            </span>
+          </button>
+          <button class="top-utility-btn" id="top-settings-shortcut" type="button" aria-label="Open settings">
+            <span class="topbar-search-icon"><i class="fa-solid fa-sliders"></i></span>
+            <span class="topbar-search-copy">
+              <strong>Settings</strong>
+              <small>Display</small>
+            </span>
+          </button>
+          <div class="sync-status-indicator">
+            <i class="fa-solid fa-cloud-check"></i>
+            <span>Database Synced</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="reader-progress-shell hidden-section" id="reader-progress-shell" aria-hidden="true">
+        <div class="reader-progress-bar" id="reader-progress-bar"></div>
+      </div>
+
+      <section class="view-panel active" id="dashboard-view">
+        <div class="hero-panel glass-panel reveal-up">
+          <div class="hero-copy">
+            <div class="eyebrow-row">
+              <span class="hero-eyebrow">Calm reading. Full offline access.</span>
+              <span class="hero-pill" id="today-ayah-pill">Today’s Ayah</span>
+            </div>
+            <h1 class="hero-title">A refined Quran companion for reading, listening, searching, and memorization.</h1>
+            <p class="hero-description">Uthmani Arabic script, Bengali meaning, English translation, transliteration, audio recitation, and offline-first access designed as a premium, distraction-free study space.</p>
+
+            <div class="hero-verse-card">
+              <p class="hero-verse-arabic" id="hero-verse-arabic">ذَٰلِكَ الْكِتَابُ لَا رَيْبَ فِيهِ هُدًى لِّلْمُتَّقِينَ</p>
+              <p class="hero-verse-translit" id="hero-verse-translit">Dhalika al-kitabu la rayba fihi hudan lilmuttaqin.</p>
+              <p class="hero-verse-translation" id="hero-verse-translation">This is the Book about which there is no doubt, a guidance for those conscious of Allah.</p>
+              <div class="hero-verse-meta" id="hero-verse-meta">Surah Al-Baqarah 2:2</div>
+            </div>
+
+            <div class="hero-actions">
+              <button class="hero-primary-btn" id="start-reading-btn" type="button">
+                <i class="fa-solid fa-book-open-reader"></i>
+                <span>Start Reading</span>
+              </button>
+              <button class="hero-secondary-btn" id="hero-continue-btn" type="button">
+                <i class="fa-regular fa-clock"></i>
+                <span>Continue Last Read</span>
+              </button>
+            </div>
+
+            <div class="hero-metrics-grid">
+              <article class="metric-chip">
+                <span class="metric-icon"><i class="fa-solid fa-fire-flame-curved"></i></span>
+                <div>
+                  <strong id="reading-streak-value">7 Days</strong>
+                  <small>Reading streak</small>
+                </div>
+              </article>
+              <article class="metric-chip">
+                <span class="metric-icon"><i class="fa-solid fa-bookmark"></i></span>
+                <div>
+                  <strong id="bookmark-count-value">0</strong>
+                  <small>Bookmarks</small>
+                </div>
+              </article>
+              <article class="metric-chip">
+                <span class="metric-icon"><i class="fa-solid fa-chart-line"></i></span>
+                <div>
+                  <strong id="reading-progress-value">0%</strong>
+                  <small>Reading progress</small>
+                </div>
+              </article>
+              <article class="metric-chip">
+                <span class="metric-icon"><i class="fa-solid fa-sun"></i></span>
+                <div>
+                  <strong id="today-ayah-value">2:2</strong>
+                  <small>Today’s ayah</small>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="hero-illustration-frame">
+              <div class="hero-pattern hero-pattern-one"></div>
+              <div class="hero-pattern hero-pattern-two"></div>
+              <div class="hero-orb hero-orb-one"></div>
+              <div class="hero-orb hero-orb-two"></div>
+              <div class="hero-card-stack">
+                <article class="floating-status-card pulse-card">
+                  <span class="status-label">Offline Status</span>
+                  <strong>Ready for reading</strong>
+                  <small>All local resources synced</small>
+                </article>
+                <article class="floating-status-card secondary-card">
+                  <span class="status-label">Daily Focus</span>
+                  <strong id="hero-focus-title">Al-Baqarah</strong>
+                  <small id="hero-focus-subtitle">Resume from your last ayah</small>
+                </article>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-rail reveal-up delay-1">
+          <div class="last-read-widget hidden-section glass-panel" id="last-read-widget-bar">
+            <div class="last-read-left">
+              <div class="last-read-icon">
+                <i class="fa-regular fa-clock"></i>
+              </div>
+              <div class="last-read-details">
+                <p>Continue from where you paused</p>
+                <h4 id="last-read-title">Surah Name : Verse 0</h4>
+              </div>
+            </div>
+            <button class="resume-btn" id="last-read-resume-btn">
+              Resume <i class="fa fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <div class="quick-actions-row">
+            <button class="quick-action-card glass-panel" id="quick-search-action" type="button">
+              <span class="quick-action-icon"><i class="fa-solid fa-sparkles"></i></span>
+              <span>
+                <strong>Search</strong>
+                <small>Instant overlay with smart suggestions</small>
+              </span>
+            </button>
+            <button class="quick-action-card glass-panel" id="quick-bookmarks-action" type="button">
+              <span class="quick-action-icon"><i class="fa-solid fa-bookmark"></i></span>
+              <span>
+                <strong>Bookmarks</strong>
+                <small>Jump back to saved verses</small>
+              </span>
+            </button>
+            <button class="quick-action-card glass-panel" id="quick-hifz-action" type="button">
+              <span class="quick-action-icon"><i class="fa-solid fa-graduation-cap"></i></span>
+              <span>
+                <strong>Hifz Mode</strong>
+                <small>Loop ayat with recall controls</small>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="dashboard-grid premium-grid reveal-up delay-2">
+          <article class="info-card glass-panel premium-card accent-emerald">
+            <div class="card-topline">
+              <div class="card-icon"><i class="fa fa-wifi"></i></div>
+              <span class="card-badge">System</span>
+            </div>
+            <h3 class="card-title">Offline Status</h3>
+            <p class="card-body">Every essential dataset is stored locally so reading, search, and study remain available without an internet connection.</p>
+            <div class="card-footer-meta">
+              <span>Quran data synced</span>
+              <strong id="offline-status-text">Ready</strong>
+            </div>
+          </article>
+
+          <article class="info-card glass-panel premium-card accent-gold">
+            <div class="card-topline">
+              <div class="card-icon"><i class="fa fa-magnifying-glass"></i></div>
+              <span class="card-badge">Discovery</span>
+            </div>
+            <h3 class="card-title">Deep Search</h3>
+            <p class="card-body">Search Arabic, English, Bangla, and transliteration in one focused overlay with recents, keyboard shortcuts, and voice input.</p>
+            <button class="card-action-btn" id="deep-search-action" type="button">Open Search</button>
+          </article>
+
+          <article class="info-card glass-panel premium-card accent-emerald">
+            <div class="card-topline">
+              <div class="card-icon"><i class="fa fa-headphones"></i></div>
+              <span class="card-badge">Listen</span>
+            </div>
+            <h3 class="card-title">Audio Streaming</h3>
+            <p class="card-body">Play ayah-by-ayah recitation with a redesigned audio dock, clearer playback focus, and synchronized verse highlighting.</p>
+            <div class="card-footer-meta">
+              <span>Reciter</span>
+              <strong>Mishary Alafasy</strong>
+            </div>
+          </article>
+
+          <article class="info-card glass-panel premium-card accent-gold">
+            <div class="card-topline">
+              <div class="card-icon"><i class="fa-solid fa-book-open-reader"></i></div>
+              <span class="card-badge">Resume</span>
+            </div>
+            <h3 class="card-title">Continue Reading</h3>
+            <p class="card-body" id="continue-reading-copy">Your latest reading position will appear here so you can return with one click.</p>
+            <button class="card-action-btn" id="continue-reading-action" type="button">Resume Reader</button>
+          </article>
+
+          <article class="info-card glass-panel premium-card accent-emerald">
+            <div class="card-topline">
+              <div class="card-icon"><i class="fa-solid fa-chart-simple"></i></div>
+              <span class="card-badge">Progress</span>
+            </div>
+            <h3 class="card-title">Reading Statistics</h3>
+            <p class="card-body">Track the current reading position, bookmark activity, and recently opened Surahs in a calmer dashboard layout.</p>
+            <div class="stat-grid-mini">
+              <div>
+                <strong id="stats-bookmarks-count">0</strong>
+                <small>Bookmarks</small>
+              </div>
+              <div>
+                <strong id="stats-recent-count">0</strong>
+                <small>Recent surahs</small>
+              </div>
+            </div>
+          </article>
+
+          <article class="info-card glass-panel premium-card accent-gold">
+            <div class="card-topline">
+              <div class="card-icon"><i class="fa-solid fa-stars"></i></div>
+              <span class="card-badge">Reflection</span>
+            </div>
+            <h3 class="card-title">Daily Ayah</h3>
+            <p class="card-body" id="daily-ayah-summary">A curated ayah is featured each day to create a calm point of return when opening the app.</p>
+            <div class="card-footer-meta">
+              <span id="daily-ayah-ref">Surah Al-Baqarah 2:2</span>
+              <strong>Today</strong>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view-panel" id="reader-view">
+        <div class="reader-toolbar glass-panel reveal-up">
+          <div class="reader-toolbar-copy">
+            <span class="reader-toolbar-eyebrow">Reader Controls</span>
+            <h3>Comfortable recitation and study mode</h3>
+          </div>
+          <div class="reader-toolbar-actions">
+            <label class="toolbar-control compact-slider-control">
+              <span>Size</span>
+              <input type="range" id="reader-font-scale-inline" min="0.8" max="1.8" step="0.1" value="1.0" aria-label="Reader font size">
+            </label>
+            <button class="toolbar-pill" id="reader-focus-toggle" type="button">
+              <i class="fa-regular fa-eye"></i>
+              <span>Focus Mode</span>
+            </button>
+            <button class="toolbar-pill" id="reader-theme-toggle" type="button">
+              <i class="fa-regular fa-moon"></i>
+              <span>Night Mode</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="surah-header-card glass-panel" id="reader-surah-header">
+          <div class="surah-header-inner">
+            <div class="surah-ar-header" id="reader-surah-ar-name">الفاتحة</div>
+            <h2 class="surah-eng-header" id="reader-surah-eng-name">Al-Fatihah</h2>
+            <p class="surah-trans-header" id="reader-surah-translation">The Opening</p>
+            <div class="surah-header-meta">
+              <span id="reader-surah-revelation">Meccan Revelation</span>
+              <span id="reader-surah-verses-count">7 Verses</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bismillah-decor hidden-section" id="bismillah-decorator">
+          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        </div>
+
+        <div class="verses-list" id="verses-list-container"></div>
+      </section>
+
+      <section class="view-panel" id="bookmarks-view">
+        <div class="section-heading reveal-up">
+          <div>
+            <span class="section-kicker">Saved ayat</span>
+            <h2 class="view-title">Your Bookmarks</h2>
+          </div>
+          <p class="view-subtitle">Reopen verses you saved for recitation, study, or memorization.</p>
+        </div>
+        <div class="search-results-list" id="bookmarks-list-container"></div>
+      </section>
+
+      <section class="view-panel" id="search-view">
+        <div class="section-heading reveal-up">
+          <div>
+            <span class="section-kicker">Search</span>
+            <h2 class="view-title">Deep Search Engine</h2>
+          </div>
+          <p class="view-subtitle">The current results canvas remains available here, while the new overlay adds instant search, recents, and voice input.</p>
+        </div>
+
+        <div class="search-stage glass-panel">
+          <div class="search-input-row">
+            <div class="search-wrapper glass-input">
+              <i class="fa fa-magnifying-glass"></i>
+              <input type="text" class="search-input" id="quran-search-input" placeholder="Type search term (e.g., mercy, رحمة, ক্ষমা)..." aria-label="Search Quran">
+            </div>
+            <button class="control-btn" id="quran-search-btn" aria-label="Execute search">
+              <i class="fa fa-magnifying-glass"></i> Search
+            </button>
+          </div>
+
+          <div class="search-results-summary" id="search-results-summary-text-box">
+            <p id="search-results-summary-text"></p>
+          </div>
+
+          <div class="search-results-list" id="search-results-container"></div>
+        </div>
+      </section>
+
+      <section class="view-panel" id="settings-view">
+        <div class="section-heading reveal-up">
+          <div>
+            <span class="section-kicker">Preferences</span>
+            <h2 class="view-title">Settings & Display</h2>
+          </div>
+          <p class="view-subtitle">Adjust reading density, typography, language visibility, and theme comfort.</p>
+        </div>
+
+        <div class="settings-list">
+          <div class="settings-group glass-panel">
+            <h3>Display Options</h3>
+
+            <div class="setting-row">
+              <div class="setting-label-col">
+                <span class="setting-title">Arabic Text</span>
+                <span class="setting-desc">Toggle the display of the original Arabic Uthmani script</span>
+              </div>
+              <label class="switch-control">
+                <input type="checkbox" id="toggle-ar" checked>
+                <span class="slider-switch"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-col">
+                <span class="setting-title">Transliteration (Pronunciation)</span>
+                <span class="setting-desc">Toggle English phonetic pronunciation helper text</span>
+              </div>
+              <label class="switch-control">
+                <input type="checkbox" id="toggle-trans" checked>
+                <span class="slider-switch"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-col">
+                <span class="setting-title">Bangla Meaning</span>
+                <span class="setting-desc">Show Muhiuddin Khan's Bengali translation</span>
+              </div>
+              <label class="switch-control">
+                <input type="checkbox" id="toggle-bn" checked>
+                <span class="slider-switch"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-col">
+                <span class="setting-title">Bangla Pronunciation</span>
+                <span class="setting-desc">Show Bengali script phonetic pronunciation helper text</span>
+              </div>
+              <label class="switch-control">
+                <input type="checkbox" id="toggle-bn-trans" checked>
+                <span class="slider-switch"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-col">
+                <span class="setting-title">English Meaning</span>
+                <span class="setting-desc">Show Saheeh International English translation</span>
+              </div>
+              <label class="switch-control">
+                <input type="checkbox" id="toggle-en" checked>
+                <span class="slider-switch"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-group glass-panel">
+            <h3>Visual Style</h3>
+
+            <div class="setting-row">
+              <div class="setting-label-col">
+                <span class="setting-title">Arabic Font Family</span>
+                <span class="setting-desc">Choose your preferred classical Arabic script font</span>
+              </div>
+              <select class="select-control" id="settings-arabic-font">
+                <option value="amiri">Amiri (Classical)</option>
+                <option value="scheherazade">Scheherazade New (Thin)</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-col">
+                <span class="setting-title">Font Size Scale</span>
+                <span class="setting-desc">Increase or decrease reading text sizing</span>
+              </div>
+              <div class="setting-control-row">
+                <input type="range" class="font-size-slider" id="settings-font-scale" min="0.8" max="1.8" step="0.1" value="1.0">
+                <span class="font-scale-value" id="settings-font-scale-val">100%</span>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-col">
+                <span class="setting-title">Theme Layout</span>
+                <span class="setting-desc">Choose dark or light visual interface mode</span>
+              </div>
+              <select class="select-control" id="settings-theme">
+                <option value="dark">Emerald Dark Mode</option>
+                <option value="light">Sage Light Mode</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view-panel" id="hifz-view">
+        <div class="section-heading reveal-up">
+          <div>
+            <span class="section-kicker">Memorization</span>
+            <h2 class="view-title">Hifz Memorization Portal</h2>
+          </div>
+          <p class="view-subtitle">Configure repeats, ranges, and pauses for memorization with active recall helpers.</p>
+        </div>
+
+        <div class="hifz-layout">
+          <div class="info-card hifz-controls-card glass-panel premium-card accent-gold">
+            <div class="card-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3 class="card-title">Loop & Memorization Settings</h3>
+
+            <div class="hifz-form-grid">
+              <div class="hifz-field">
+                <label>Select Surah</label>
+                <select class="select-control" id="hifz-surah-select"></select>
+              </div>
+              <div class="hifz-field">
+                <label>Delay Between Verses</label>
+                <select class="select-control" id="hifz-delay-select">
+                  <option value="0">No delay</option>
+                  <option value="1">1 second</option>
+                  <option value="2">2 seconds</option>
+                  <option value="3">3 seconds</option>
+                  <option value="5">5 seconds</option>
+                  <option value="auto">Equal to verse length</option>
+                </select>
+              </div>
+              <div class="hifz-field">
+                <label>Start Ayah</label>
+                <input type="number" class="search-input" id="hifz-start-ayah" min="1" value="1">
+              </div>
+              <div class="hifz-field">
+                <label>End Ayah</label>
+                <input type="number" class="search-input" id="hifz-end-ayah" min="1" value="7">
+              </div>
+              <div class="hifz-field">
+                <label>Repeat Each Verse</label>
+                <select class="select-control" id="hifz-verse-repeats">
+                  <option value="1">1 time</option>
+                  <option value="2">2 times</option>
+                  <option value="3">3 times</option>
+                  <option value="5">5 times</option>
+                  <option value="10">10 times</option>
+                  <option value="20">20 times</option>
+                </select>
+              </div>
+              <div class="hifz-field">
+                <label>Repeat Range Loop</label>
+                <select class="select-control" id="hifz-loop-repeats">
+                  <option value="1">1 loop</option>
+                  <option value="2">2 loops</option>
+                  <option value="3">3 loops</option>
+                  <option value="5">5 loops</option>
+                  <option value="10">10 loops</option>
+                  <option value="infinite">Infinite loops</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="resume-btn hifz-start-btn" id="hifz-start-btn">
+              <i class="fa fa-play"></i> Start Hifz Loop
+            </button>
+          </div>
+
+          <div class="info-card hifz-player-card glass-panel premium-card accent-emerald">
+            <div>
+              <div class="card-icon"><i class="fa-solid fa-volume-high" id="hifz-play-state-icon"></i></div>
+              <h3 class="card-title" id="hifz-playing-title">Player Standby</h3>
+              <p class="card-body" id="hifz-playing-meta">Setup a range and press start.</p>
+            </div>
+
+            <div class="hifz-progress-details">
+              <div class="hifz-progress-row">
+                <span>Active Ayah:</span> <span id="hifz-progress-ayah">-</span>
+              </div>
+              <div class="hifz-progress-row">
+                <span>Verse Repeat:</span> <span id="hifz-progress-repeat">-</span>
+              </div>
+              <div class="hifz-progress-row">
+                <span>Range Loop:</span> <span id="hifz-progress-loop">-</span>
+              </div>
+            </div>
+
+            <div class="hifz-player-actions">
+              <button class="card-action-btn hifz-action-btn" id="hifz-pause-resume-btn" disabled>Pause</button>
+              <button class="card-action-btn hifz-action-btn hifz-stop-btn" id="hifz-stop-btn" disabled>Stop</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group glass-panel">
+          <h3>Active Recall Memorization Toggles</h3>
+          <div class="hifz-toggles-grid">
+            <label class="hifz-toggle-label">
+              <input type="checkbox" id="hifz-toggle-arabic"> Hide Arabic
+            </label>
+            <label class="hifz-toggle-label">
+              <input type="checkbox" id="hifz-toggle-trans"> Hide English Pronunciation
+            </label>
+            <label class="hifz-toggle-label">
+              <input type="checkbox" id="hifz-toggle-bn-trans"> Hide Bangla Pronunciation
+            </label>
+            <label class="hifz-toggle-label">
+              <input type="checkbox" id="hifz-toggle-bangla"> Hide Bangla Meaning
+            </label>
+          </div>
+        </div>
+
+        <h3 class="view-subheading">Hifz Reading Range</h3>
+        <div class="verses-list" id="hifz-verses-container">
+          <div class="empty-state">
+            <p>Select a range above and click "Start Hifz Loop" to load reading items.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="audio-player-bar" id="audio-player-bar">
+        <div class="audio-now-playing">
+          <div class="audio-avatar">
+            <i class="fa fa-microphone"></i>
+          </div>
+          <div class="audio-meta">
+            <span class="audio-kicker">Now Playing</span>
+            <h5 id="audio-surah-title">Surah Al-Fatihah</h5>
+            <p id="audio-verse-number">Verse 1</p>
+          </div>
+        </div>
+
+        <div class="audio-center-stack">
+          <div class="audio-buttons">
+            <button class="audio-btn" id="audio-prev-btn" title="Previous Verse" aria-label="Previous verse"><i class="fa fa-backward-step"></i></button>
+            <button class="audio-btn play-pause-btn" id="audio-play-pause-btn" title="Play / Pause" aria-label="Play or Pause"><i class="fa fa-pause" id="audio-play-icon"></i></button>
+            <button class="audio-btn" id="audio-stop-btn" title="Stop Player" aria-label="Stop"><i class="fa fa-stop"></i></button>
+            <button class="audio-btn" id="audio-next-btn" title="Next Verse" aria-label="Next verse"><i class="fa fa-forward-step"></i></button>
+          </div>
+
+          <div class="audio-progress-container">
+            <span class="audio-time" id="audio-time-current">0:00</span>
+            <div class="audio-progress-bar" id="audio-progress-container-bar">
+              <div class="audio-progress-fill" id="audio-progress-fill-bar"></div>
+            </div>
+            <span class="audio-time audio-time-end" id="audio-time-end">0:00</span>
+          </div>
+        </div>
+
+        <div class="audio-volume-controls">
+          <button class="volume-btn" id="audio-volume-btn" title="Mute Toggle" aria-label="Volume"><i class="fa fa-volume-high"></i></button>
+          <input type="range" class="volume-slider" id="audio-volume-slider" min="0" max="1" step="0.05" value="0.8" aria-label="Volume slider">
+        </div>
+      </footer>
+    </main>
+
+    <div class="search-overlay hidden-section" id="search-overlay" aria-hidden="true">
+      <div class="search-overlay-backdrop" id="search-overlay-backdrop"></div>
+      <div class="search-overlay-dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="overlay-search-title">
+        <div class="search-overlay-header">
+          <div>
+            <span class="section-kicker">Search</span>
+            <h2 id="overlay-search-title">Search the Quran instantly</h2>
+          </div>
+          <button class="overlay-close-btn" id="search-overlay-close" type="button" aria-label="Close search overlay">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="overlay-search-shell">
+          <div class="overlay-search-input glass-input">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="overlay-search-input" placeholder="Search Arabic, English, Bangla, or transliteration" aria-label="Overlay search input" autocomplete="off">
+            <button class="voice-search-btn" id="voice-search-btn" type="button" aria-label="Start voice search">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+          <div class="overlay-search-meta">
+            <div class="language-filter-row" id="search-language-filters">
+              <button class="language-chip active" type="button" data-mode="all">All</button>
+              <button class="language-chip" type="button" data-mode="arabic">Arabic</button>
+              <button class="language-chip" type="button" data-mode="english">English</button>
+              <button class="language-chip" type="button" data-mode="bangla">Bangla</button>
+              <button class="language-chip" type="button" data-mode="transliteration">Translit</button>
+            </div>
+            <div class="search-shortcuts-row">
+              <span class="shortcut-pill">/</span>
+              <span class="shortcut-pill">Ctrl K</span>
+              <span class="shortcut-copy">Press to open search anywhere</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-overlay-body">
+          <aside class="search-side-panel">
+            <div class="search-side-card glass-panel">
+              <div class="search-side-title">Recent Searches</div>
+              <div class="recent-searches-list" id="recent-searches-list">
+                <div class="mini-empty-state">No recent searches yet.</div>
+              </div>
+            </div>
+            <div class="search-side-card glass-panel">
+              <div class="search-side-title">Suggestions</div>
+              <div class="search-suggestions-list" id="search-suggestions-list">
+                <button class="suggestion-chip" type="button">mercy</button>
+                <button class="suggestion-chip" type="button">guidance</button>
+                <button class="suggestion-chip" type="button">sabr</button>
+                <button class="suggestion-chip" type="button">رحمة</button>
+                <button class="suggestion-chip" type="button">ক্ষমা</button>
+              </div>
+            </div>
+          </aside>
+
+          <div class="search-results-stage glass-panel">
+            <div class="overlay-results-summary" id="overlay-results-summary">Start typing to search across the Quran.</div>
+            <div class="overlay-results-list" id="overlay-search-results"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="sync-overlay" id="sync-overlay">
+      <div class="sync-logo">
+        <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 80c80 0 140-30 140-30V340s-60 30-140 30-140-30-140-30V50s60 30 140 30z" fill="#0F2C22" stroke="#EAB308" stroke-width="12" stroke-linejoin="round"/>
+          <path d="M256 120c-60 0-110-20-110-20v190s50 20 110 20M256 120c60 0 110-20 110-20v190s-50 20-110 20" stroke="#EAB308" stroke-width="10" stroke-linecap="round"/>
+          <path d="M256 120v210" stroke="#EAB308" stroke-width="10"/>
+          <circle cx="256" cy="230" r="180" stroke="#EAB308" stroke-width="6" stroke-dasharray="20 10"/>
+        </svg>
+      </div>
+      <h1 class="sync-title">Setup Quran Database</h1>
+      <p class="sync-subtitle">Welcome! To run this Quran offline, we need to download the database files once. This pulls the Uthmani Arabic script, English translation, transliteration phonetics, and Bengali translations (~4-5MB). Once completed, you won't need internet anymore.</p>
+
+      <button class="sync-btn" id="start-sync-btn">Start Setup & Download</button>
+
+      <div class="sync-progress-box hidden-section" id="sync-progress-box">
+        <div class="sync-progress-bar">
+          <div class="sync-progress-fill" id="sync-progress-fill-bar"></div>
+        </div>
+        <div class="sync-status-text" id="sync-status-label">Downloading data...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registered with scope:', reg.scope))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>

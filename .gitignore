@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+*.log
+android/app/build/
+android/.gradle/
+.pnpm-store/
+.turbo/
+.next/
+dist/
+out/
