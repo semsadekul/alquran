@@ -1,34 +1,35 @@
 import Link from 'next/link';
-import { ContinueReading } from '../../components/ContinueReading';
-import { SearchOmnibox } from '../../components/SearchOmnibox';
+import { PageShell } from '@/components/ui/PageShell';
+import { Card } from '@/components/ui/Card';
+import { ContinueReading } from '@/components/ContinueReading';
+import { SearchOmnibox } from '@/components/SearchOmnibox';
 
 const quickActions = [
-  { title: 'সূরা তালিকা (Surah List)', description: 'Explore all 114 Surahs of the Quran.', href: '/quran/surahs' },
+  { title: 'সূরা তালিকা', description: 'Explore all 114 Surahs of the Quran.', href: '/quran/surahs' },
   { title: 'Search', description: 'Find verses by Arabic, Bangla, English, or transliteration.', href: '/search' },
-  { title: 'Bookmarks', description: 'Jump back to your saved verses.', href: '/library' },
-  { title: 'Settings', description: 'Adjust reading display, font, and language options.', href: '/settings' }
+  { title: 'Bookmarks', description: 'Jump back to your saved verses.', href: '/library/bookmarks' },
+  { title: 'Settings', description: 'Adjust reading display, font, and language options.', href: '/settings' },
 ];
 
 export default function QuranHomePage() {
   return (
-    <main className="shell">
-      <section className="hero" style={{ marginBottom: '40px' }}>
-        <p className="eyebrow">Al Quran</p>
-        <h1>কুরআন মাজীদ</h1>
-      </section>
-
+    <PageShell title="কুরআন মাজীদ" eyebrow="Al Quran">
       <SearchOmnibox />
       <ContinueReading />
 
-      <h2 style={{ marginBottom: '16px', fontFamily: 'var(--font-bengali-ui)' }}>কুইক লিংক</h2>
-      <section className="grid">
-        {quickActions.map(action => (
-          <Link className="card card-link" href={action.href} key={action.title}>
-            <h2>{action.title}</h2>
-            <p>{action.description}</p>
+      <h2 className="text-xl font-semibold text-ink mb-4 mt-8" style={{ fontFamily: 'var(--font-bengali-ui)' }}>
+        কুইক লিংক
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {quickActions.map((action) => (
+          <Link href={action.href} key={action.title}>
+            <Card variant="interactive" className="h-full">
+              <h3 className="font-semibold text-ink mb-1">{action.title}</h3>
+              <p className="text-sm text-ink-3">{action.description}</p>
+            </Card>
           </Link>
         ))}
-      </section>
-    </main>
+      </div>
+    </PageShell>
   );
 }

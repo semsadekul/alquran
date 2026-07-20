@@ -1,38 +1,42 @@
 import { useEffect } from 'react';
 import { ReadingPosition } from '@alquran/types';
 
-export function useReadingProgress(surahNumber: number, surahName: string) {
+export function useReadingProgress(surahNumber: number, surahName: string, numberOfAyahs?: number) {
   useEffect(() => {
-    let timeoutId: number;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const handleScroll = () => {
-      // Debounce saving
-      window.clearTimeout(timeoutId);
-      timeoutId = window.setTimeout(() => {
-        // Find the topmost visible verse
-        const verseCards = document.querySelectorAll('.verse-card');
-        let topmostVerse: Element | null = null;
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        // Find the topmost visible verse by ID pattern verse-{n}
+        const verseEls = document.querySelectorAll('[id^="verse-"]');
+        let bestEl: HTMLElement | undefined;
         let minTop = Infinity;
 
-        verseCards.forEach(card => {
-          const rect = card.getBoundingClientRect();
+        verseEls.forEach((node) => {
+          const el = node as HTMLElement;
+          const rect = el.getBoundingClientRect();
           if (rect.top >= 0 && rect.top < window.innerHeight && rect.top < minTop) {
             minTop = rect.top;
-            topmostVerse = card;
+            bestEl = el;
           }
         });
 
-        if (topmostVerse) {
-          const ayahNumber = parseInt((topmostVerse as Element).getAttribute('data-ayah') || '1', 10);
-          
+        if (bestEl) {
+          const ayahNumber = parseInt(bestEl.id.replace('verse-', ''), 10) || 1;
+          const arabicEl = bestEl.querySelector('[dir="rtl"]');
+          const arabicPreview = arabicEl?.textContent?.slice(0, 80) ?? '';
+
           const position: ReadingPosition = {
             surah: surahNumber,
             ayah: ayahNumber,
-            surahName: surahName,
+            surahName,
             timestamp: Date.now(),
-            scrollY: window.scrollY
+            scrollY: window.scrollY,
+            arabicPreview,
+            numberOfAyahs,
           };
-          
+
           localStorage.setItem('alquran_last_read', JSON.stringify(position));
         }
       }, 500);
@@ -41,7 +45,7 @@ export function useReadingProgress(surahNumber: number, surahName: string) {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
     };
-  }, [surahNumber, surahName]);
+  }, [surahNumber, surahName, numberOfAyahs]);
 }

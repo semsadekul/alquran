@@ -1,75 +1,32 @@
-'use client';
+import { PageShell } from '@/components/ui/PageShell';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Badge } from '@/components/ui/Badge';
 
-import Link from 'next/link';
-
-const features = [
-  {
-    title: 'Shared Collections',
-    description: 'Create study collections and share them with students or family members.',
-    status: 'Available'
-  },
-  {
-    title: 'Study Plans',
-    description: 'Design structured study plans with daily reading assignments and progress tracking.',
-    status: 'Coming soon'
-  },
-  {
-    title: 'Reading Assignments',
-    description: 'Assign specific surahs, hadith, or book chapters to students with due dates.',
-    status: 'Coming soon'
-  },
-  {
-    title: 'Progress Dashboard',
-    description: 'Monitor student reading progress, streaks, and completion rates.',
-    status: 'Coming soon'
-  },
-  {
-    title: 'Family Mode',
-    description: 'Shared family account with individual reading profiles and parental controls.',
-    status: 'Coming soon'
-  },
-  {
-    title: 'Mosque Display',
-    description: 'Optimized display mode for mosque screens with large Arabic text and translation.',
-    status: 'Coming soon'
-  }
-];
+export const metadata = {
+  title: 'Teacher & Family — Al Quran Ecosystem',
+  description: 'Tools for Islamic teachers, parents, and community leaders to guide study and track progress.',
+};
 
 export default function TeacherPage() {
   return (
-    <div className="page-container">
-      <section className="page-hero">
-        <p className="eyebrow">Teacher & Family</p>
-        <h1>Teacher & Family Mode</h1>
-        <p className="lede">
-          Tools for Islamic teachers, parents, and community leaders to guide study and track progress.
-        </p>
-      </section>
-
-      <div className="card-grid">
-        {features.map(feature => (
-          <div className="card" key={feature.title}>
-            <div className="card-badge-row">
-              <span className={`card-badge ${feature.status === 'Available' ? 'badge-available' : 'badge-coming'}`}>
-                {feature.status}
-              </span>
-            </div>
-            <h2>{feature.title}</h2>
-            <p>{feature.description}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="teacher-cta">
-        <h2>Start Teaching</h2>
-        <p>
-          Create a shared collection to get started. Add verses and hadith to a collection,
-          then share the link with your students or family.
-        </p>
-        <Link className="reader-nav-btn" href="/library/collections">
-          Go to Collections →
-        </Link>
-      </div>
-    </div>
+    <PageShell
+      eyebrow="Teacher & Family"
+      title="Teacher & Family Mode"
+      lede="Tools for Islamic teachers, parents, and community leaders to guide study and track progress."
+    >
+      <EmptyState
+        icon={
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87" />
+            <path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
+        }
+        title="Coming Soon"
+        hint="Teacher and family tools are currently under development. Features like study plans, reading assignments, progress dashboards, and shared collections will be available in a future release."
+        action={<Badge tone="neutral">In Development</Badge>}
+      />
+    </PageShell>
   );
 }

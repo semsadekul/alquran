@@ -37,6 +37,8 @@ export interface ReadingPosition {
   surahName: string;
   timestamp: number;
   scrollY?: number;
+  arabicPreview?: string;
+  numberOfAyahs?: number;
 }
 
 export interface ReaderPreferences {

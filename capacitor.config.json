@@ -1,8 +1,22 @@
 {
   "appId": "com.sadek.alquran",
-  "appName": "Al Quran Offline",
-  "webDir": "www",
+  "appName": "Al Quran",
+  "webDir": "apps/web/out",
   "server": {
     "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#0a3622",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0a3622"
+    }
   }
 }

@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import { HADITH_COLLECTIONS } from '@alquran/hadith';
+import { PageShell } from '@/components/ui/PageShell';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 
 export const metadata = {
   title: 'Hadith Collections — Al Quran Ecosystem',
@@ -8,37 +11,43 @@ export const metadata = {
 
 export default function HadithPage() {
   return (
-    <div className="page-container">
-      <section className="page-hero">
-        <p className="eyebrow">Hadith</p>
-        <h1>Hadith Collection Catalog</h1>
-        <p className="lede">
-          Browse the major authenticated hadith collections. Full book, chapter, and entry-level reading is being connected after Quran audio and Hifz parity restoration.
+    <PageShell
+      eyebrow="Hadith"
+      title="Hadith Collection Catalog"
+      lede="Browse the major authenticated hadith collections. Full book, chapter, and entry-level reading is being connected after Quran audio and Hifz parity restoration."
+    >
+      <div className="bg-accent-subtle rounded-xl p-4 mb-6">
+        <p className="text-sm text-ink-2">
+          The collection directory is live, but full hadith reading content is still being wired from the backend data pipeline.
         </p>
-      </section>
-
-      <div className="settings-note" style={{ marginBottom: 24 }}>
-        The collection directory is live, but full hadith reading content is still being wired from the backend data pipeline.
       </div>
 
-      <div className="card-grid">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {HADITH_COLLECTIONS.map(collection => (
           <Link
-            className="card card-link"
             href={`/hadith/collections/${collection.slug}`}
             key={collection.id}
+            className="block"
           >
-            <div className="card-badge-row">
-              <span className="card-badge">{collection.totalHadith?.toLocaleString()} hadith</span>
-              <span className="card-badge badge-coming">Catalog</span>
-            </div>
-            <h2>{collection.nameEnglish}</h2>
-            <div className="card-arabic">{collection.nameArabic}</div>
-            {collection.nameBangla && <div className="card-bangla">{collection.nameBangla}</div>}
-            <p>{collection.description}</p>
+            <Card variant="interactive" className="h-full">
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Badge tone="gold">{collection.totalHadith?.toLocaleString()} hadith</Badge>
+                <Badge tone="neutral">Catalog</Badge>
+              </div>
+              <h2 className="text-lg font-semibold text-ink mb-1">{collection.nameEnglish}</h2>
+              <p dir="rtl" lang="ar" className="font-arabic text-sm text-ink-2 mb-1">
+                {collection.nameArabic}
+              </p>
+              {collection.nameBangla && (
+                <p className="text-sm text-ink-3 mb-2" style={{ fontFamily: 'var(--font-bengali-ui)' }}>
+                  {collection.nameBangla}
+                </p>
+              )}
+              <p className="text-sm text-ink-3 leading-relaxed">{collection.description}</p>
+            </Card>
           </Link>
         ))}
       </div>
-    </div>
+    </PageShell>
   );
 }

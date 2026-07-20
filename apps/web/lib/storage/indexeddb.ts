@@ -1,7 +1,19 @@
 'use client';
 
+/**
+ * Single shared IndexedDB module for the entire app.
+ * DB_NAME: AlQuranOfflineDB
+ * DB_VERSION: 2
+ *
+ * Stores:
+ *   v1: surahs, verses, bookmarks, settings
+ *   v2: + audioManifest (per-surah+reciter download records)
+ *
+ * IMPORTANT: Only ONE module should call indexedDB.open() to avoid VersionError.
+ */
+
 const DB_NAME = 'AlQuranOfflineDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance: IDBDatabase | null = null;
 
@@ -19,6 +31,8 @@ export function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+
+      // v1 stores
       if (!db.objectStoreNames.contains('surahs')) {
         db.createObjectStore('surahs', { keyPath: 'number' });
       }
@@ -32,9 +46,16 @@ export function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings', { keyPath: 'key' });
       }
+
+      // v2 store: audio download manifest
+      if (!db.objectStoreNames.contains('audioManifest')) {
+        db.createObjectStore('audioManifest', { keyPath: 'key' });
+      }
     };
   });
 }
+
+/* ─── Generic helpers ─── */
 
 export async function getAllFromStore<T>(storeName: string): Promise<T[]> {
   const db = await openDB();
@@ -64,7 +85,7 @@ export async function writeToStore<T>(storeName: string, data: T | T[]): Promise
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName);
     if (Array.isArray(data)) {
-      data.forEach(item => store.put(item));
+      data.forEach((item) => store.put(item));
     } else {
       store.put(data);
     }
@@ -83,6 +104,26 @@ export async function deleteFromStore(storeName: string, key: string): Promise<v
     tx.onerror = () => reject(tx.error);
   });
 }
+
+/* ─── Audio manifest helpers (v2) ─── */
+
+export async function getAudioRecord<T>(key: string): Promise<T | undefined> {
+  return getFromStore<T>('audioManifest', key);
+}
+
+export async function putAudioRecord<T>(record: T): Promise<void> {
+  return writeToStore<T>('audioManifest', record);
+}
+
+export async function getAllAudioRecords<T>(): Promise<T[]> {
+  return getAllFromStore<T>('audioManifest');
+}
+
+export async function deleteAudioRecord(key: string): Promise<void> {
+  return deleteFromStore('audioManifest', key);
+}
+
+/* ─── Legacy types (kept for compatibility) ─── */
 
 export interface LegacyBookmark {
   surah_ayah: string;
@@ -112,26 +153,42 @@ export interface LegacySettings {
   sidebarCollapsed: boolean;
 }
 
+/* ─── Legacy domain helpers ─── */
+
 export async function getBookmarks(): Promise<LegacyBookmark[]> {
   return getAllFromStore<LegacyBookmark>('bookmarks');
 }
 
 export async function getLastRead(): Promise<LegacyReadingPosition | undefined> {
-  const result = await getFromStore<{ key: string; value: LegacyReadingPosition }>('settings', 'last_read');
+  const result = await getFromStore<{ key: string; value: LegacyReadingPosition }>(
+    'settings',
+    'last_read',
+  );
   return result?.value;
 }
 
 export async function getSettings(): Promise<LegacySettings | undefined> {
-  const result = await getFromStore<{ key: string; value: LegacySettings }>('settings', 'app_config');
+  const result = await getFromStore<{ key: string; value: LegacySettings }>(
+    'settings',
+    'app_config',
+  );
   return result?.value;
 }
 
 export async function getRecentSearches(): Promise<string[]> {
-  const result = await getFromStore<{ key: string; value: string[] }>('settings', 'recent_searches');
+  const result = await getFromStore<{ key: string; value: string[] }>(
+    'settings',
+    'recent_searches',
+  );
   return result?.value || [];
 }
 
-export async function getRecentSurahs(): Promise<Array<{ number: number; englishName: string; name: string; timestamp: number }>> {
-  const result = await getFromStore<{ key: string; value: Array<{ number: number; englishName: string; name: string; timestamp: number }> }>('settings', 'recent_surahs');
+export async function getRecentSurahs(): Promise<
+  Array<{ number: number; englishName: string; name: string; timestamp: number }>
+> {
+  const result = await getFromStore<{
+    key: string;
+    value: Array<{ number: number; englishName: string; name: string; timestamp: number }>;
+  }>('settings', 'recent_surahs');
   return result?.value || [];
 }

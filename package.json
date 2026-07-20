@@ -8,10 +8,24 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "dev:web": "pnpm --filter @alquran/web dev",
-    "build:web": "pnpm --filter @alquran/web build"
+    "build:web": "pnpm --filter @alquran/web build",
+    "build:android": "pnpm build:web && npx cap sync android",
+    "open:android": "npx cap open android",
+    "android": "pnpm build:android && npx cap open android"
   },
   "devDependencies": {
+    "@capacitor/cli": "6.2.1",
     "turbo": "^2.0.14",
     "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.2.1",
+    "@capacitor/app": "^6.0.3",
+    "@capacitor/core": "6.2.1",
+    "@capacitor/filesystem": "^6.0.4",
+    "@capacitor/network": "^6.0.4",
+    "@capacitor/share": "^6.0.4",
+    "@capacitor/splash-screen": "^6.0.4",
+    "@capacitor/status-bar": "^6.0.3"
   }
 }

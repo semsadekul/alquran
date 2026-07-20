@@ -1,19 +1,18 @@
 import { getSurahs } from '@/lib/data/quran';
 import { SurahListClient } from '@/components/quran/SurahListClient';
 import type { Surah } from '@alquran/types';
+import { PageShell } from '@/components/ui/PageShell';
 
 export default function SurahListPage() {
   const allSurahs = getSurahs() as Surah[];
 
   return (
-    <div className="shell">
-      <section className="hero">
-        <p className="eyebrow">Quran</p>
-        <h1>সূরা সমূহ (Surahs)</h1>
-        <p className="lede">All 114 Surahs of the Holy Quran.</p>
-      </section>
-
+    <PageShell
+      title="সূরা সমূহ"
+      eyebrow="Quran"
+      lede="All 114 Surahs of the Holy Quran."
+    >
       <SurahListClient initialSurahs={allSurahs} />
-    </div>
+    </PageShell>
   );
 }

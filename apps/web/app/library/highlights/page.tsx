@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { PageShell } from '@/components/ui/PageShell';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface Highlight {
   id: string;
@@ -22,32 +26,46 @@ export default function HighlightsPage() {
   }, []);
 
   return (
-    <div className="page-container">
-      <section className="page-hero">
-        <p className="eyebrow">Library</p>
-        <h1>Highlights</h1>
-        <p className="lede">Verses and passages you&apos;ve highlighted during study.</p>
-      </section>
-
+    <PageShell
+      eyebrow="Library"
+      title="Highlights"
+      lede="Verses and passages you've highlighted during study."
+    >
       {loading ? (
-        <div className="empty-state">Loading highlights…</div>
-      ) : highlights.length === 0 ? (
-        <div className="empty-state">
-          <p>No highlights yet. Highlight verses while reading to see them here.</p>
-          <Link className="reader-nav-btn" href="/quran/surahs">Browse Surahs</Link>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
         </div>
+      ) : highlights.length === 0 ? (
+        <EmptyState
+          title="No highlights yet"
+          hint="Highlight verses while reading to see them here."
+          action={
+            <Button href="/quran/surahs" variant="gold">
+              Browse Surahs
+            </Button>
+          }
+        />
       ) : (
-        <div className="bookmarks-list">
+        <div className="space-y-3">
           {highlights.map(h => (
-            <div className="bookmark-card" key={h.id}>
-              <div className="bookmark-ref" style={{ borderLeftColor: h.color }}>
-                {h.source} — {h.sourceId}
+            <Card key={h.id} className="p-4">
+              <div
+                className="flex items-center justify-between mb-2"
+                style={{ borderLeft: `3px solid ${h.color}`, paddingLeft: 12 }}
+              >
+                <span className="text-sm font-medium text-accent">
+                  {h.source} &mdash; {h.sourceId}
+                </span>
               </div>
-              {h.text && <p className="bookmark-preview">{h.text}</p>}
-            </div>
+              {h.text && (
+                <p className="text-sm text-ink-3 leading-relaxed line-clamp-2">{h.text}</p>
+              )}
+            </Card>
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

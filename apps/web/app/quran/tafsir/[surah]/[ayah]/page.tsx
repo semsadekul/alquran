@@ -1,11 +1,16 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getSurahByNumber, getVersesBySurah, getSurahs } from '@/lib/data/quran';
+import { PageShell } from '@/components/ui/PageShell';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export function generateStaticParams() {
   const surahs = getSurahs();
   const params: { surah: string; ayah: string }[] = [];
-  
+
   for (const surah of surahs) {
     for (let ayah = 1; ayah <= surah.numberOfAyahs; ayah++) {
       params.push({
@@ -14,9 +19,10 @@ export function generateStaticParams() {
       });
     }
   }
-  
+
   return params;
 }
+
 export async function generateMetadata({ params }: { params: Promise<{ surah: string; ayah: string }> }) {
   const { surah, ayah } = await params;
   const s = parseInt(surah, 10);
@@ -44,60 +50,74 @@ export default async function TafsirPage({ params }: { params: Promise<{ surah: 
   const nextAyah = ayahNum < surahMeta.numberOfAyahs ? ayahNum + 1 : null;
 
   return (
-    <div className="reader-page">
-      <Link className="back-link" href={`/quran/surahs/${surahNum}`}>← {surahMeta.englishName}</Link>
+    <PageShell
+      eyebrow="Tafsir"
+      title={`${surahMeta.englishName} — ${surahNum}:${ayahNum}`}
+      lede={surahMeta.englishNameTranslation}
+    >
+      <Button href={`/quran/surahs/${surahNum}`} variant="ghost" className="mb-6">
+        &larr; {surahMeta.englishName}
+      </Button>
 
-      <div className="surah-header-card" style={{ marginBottom: 24 }}>
-        <p className="eyebrow">Tafsir</p>
-        <h1 style={{ fontSize: '1.5rem' }}>{surahMeta.englishName} — {surahNum}:{ayahNum}</h1>
-        <p className="lede">{surahMeta.englishNameTranslation}</p>
-      </div>
-
-      <article className="verse-card" style={{ marginBottom: 32 }}>
-        <div className="verse-badge">{surahNum}:{ayahNum}</div>
-        <div className="verse-arabic">{verse.arabic}</div>
-        <div className="verse-translation">
-          <span className="translation-label">Bangla</span>
-          <p>{verse.bangla}</p>
+      <Card className="p-5 md:p-6 mb-8">
+        <div className="mb-3">
+          <Badge tone="gold">{surahNum}:{ayahNum}</Badge>
         </div>
-        <div className="verse-translation">
-          <span className="translation-label">English</span>
-          <p>{verse.english}</p>
+        <p dir="rtl" lang="ar" className="font-arabic text-2xl md:text-3xl text-ink leading-loose mb-4">
+          {verse.arabic}
+        </p>
+        <div className="space-y-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-1">Bangla</p>
+            <p className="text-sm text-ink-2 leading-relaxed" style={{ fontFamily: 'var(--font-bengali-ui)' }}>
+              {verse.bangla}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-1">English</p>
+            <p className="text-sm text-ink-2 leading-relaxed">
+              {verse.english}
+            </p>
+          </div>
         </div>
-      </article>
+      </Card>
 
-      <div className="tafsir-section">
-        <h2 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Tafsir & Commentary</h2>
-        <div className="tafsir-placeholder">
-          <p>
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-ink mb-4">Tafsir &amp; Commentary</h2>
+        <Card className="p-5 md:p-6">
+          <p className="text-sm text-ink-2 leading-relaxed mb-3">
             Tafsir content for this verse will be loaded from the database once the tafsir data ingestion
             pipeline is complete. This will include classical and contemporary commentary in Bengali and English.
           </p>
-          <p className="coming-soon-note">
+          <p className="text-xs text-ink-4">
             Supported tafsir sources: Ibn Kathir, Jalalayn, Ma&apos;ariful Quran, Tafsir Uthmani.
           </p>
-        </div>
+        </Card>
       </div>
 
-      <div className="verse-related">
-        <h3 style={{ fontSize: '1rem', marginBottom: 12 }}>Translations</h3>
-        <Link className="card card-link" href={`/quran/compare/${surahNum}/${ayahNum}`} style={{ display: 'block', marginBottom: 8 }}>
-          Compare translations side by side →
-        </Link>
-      </div>
-
-      <nav className="reader-nav" style={{ marginTop: 32 }}>
-        {prevAyah ? (
-          <Link className="reader-nav-btn" href={`/quran/tafsir/${surahNum}/${prevAyah}`}>
-            ← Ayah {prevAyah}
+      <div className="mb-8">
+        <h3 className="text-base font-semibold text-ink mb-3">Translations</h3>
+        <Card variant="interactive" className="p-4">
+          <Link href={`/quran/compare/${surahNum}/${ayahNum}`} className="block min-h-[44px] flex items-center">
+            <span className="text-sm text-accent font-medium">
+              Compare translations side by side &rarr;
+            </span>
           </Link>
+        </Card>
+      </div>
+
+      <nav className="flex items-center justify-between mt-8">
+        {prevAyah ? (
+          <Button href={`/quran/tafsir/${surahNum}/${prevAyah}`} variant="ghost">
+            &larr; Ayah {prevAyah}
+          </Button>
         ) : <span />}
         {nextAyah ? (
-          <Link className="reader-nav-btn" href={`/quran/tafsir/${surahNum}/${nextAyah}`}>
-            Ayah {nextAyah} →
-          </Link>
+          <Button href={`/quran/tafsir/${surahNum}/${nextAyah}`} variant="ghost">
+            Ayah {nextAyah} &rarr;
+          </Button>
         ) : <span />}
       </nav>
-    </div>
+    </PageShell>
   );
 }

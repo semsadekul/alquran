@@ -3,6 +3,11 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { PageShell } from '@/components/ui/PageShell';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface VerseData {
   number: number;
@@ -39,79 +44,105 @@ function CompareContent() {
 
   if (loading) {
     return (
-      <div className="page-container">
-        <div className="empty-state">
-          <p>Loading verse comparison...</p>
+      <PageShell eyebrow="Translation Comparison" title="Loading verse comparison...">
+        <div className="space-y-4">
+          <Skeleton className="h-32 rounded-xl" />
+          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-20 rounded-xl" />
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   if (!verse) {
     return (
-      <div className="page-container">
-        <div className="empty-state">
-          <p>Select a verse to compare translations.</p>
-          <Link className="reader-nav-btn" href="/quran/surahs">Browse Surahs</Link>
-        </div>
-      </div>
+      <PageShell eyebrow="Translation Comparison" title="No verse selected">
+        <EmptyState
+          title="Select a verse to compare translations"
+          hint="Browse surahs and pick a verse to see translations side by side."
+          action={
+            <Button href="/quran/surahs" variant="gold">
+              Browse Surahs
+            </Button>
+          }
+        />
+      </PageShell>
     );
   }
 
   const translations = [
-    { label: 'Bangla (Muhiuddin Khan)', text: verse.bangla, lang: 'bn' },
-    { label: 'English (Saheeh International)', text: verse.english, lang: 'en' },
-    { label: 'Transliteration', text: verse.transliteration, lang: 'en' }
+    { label: 'Bangla (Muhiuddin Khan)', text: verse.bangla, lang: 'bn' as const },
+    { label: 'English (Saheeh International)', text: verse.english, lang: 'en' as const },
+    { label: 'Transliteration', text: verse.transliteration, lang: 'en' as const },
   ];
 
   if (verse.banglaTransliteration) {
-    translations.push({ label: 'Bangla Pronunciation', text: verse.banglaTransliteration, lang: 'bn' });
+    translations.push({ label: 'Bangla Pronunciation', text: verse.banglaTransliteration, lang: 'bn' as const });
   }
 
   return (
-    <div className="page-container">
-      <Link className="back-link" href={`/quran/surahs/${surahNum}`}>← {verse.surahName}</Link>
+    <PageShell
+      eyebrow="Translation Comparison"
+      title={`${verse.surahName} — ${surahNum}:${ayahNum}`}
+    >
+      <Button href={`/quran/surahs/${surahNum}`} variant="ghost" className="mb-6">
+        &larr; {verse.surahName}
+      </Button>
 
-      <section className="page-hero">
-        <p className="eyebrow">Translation Comparison</p>
-        <h1>{verse.surahName} — {surahNum}:{ayahNum}</h1>
-        <p className="lede">Translation Comparison</p>
-      </section>
-
-      <div className="compare-arabic-block">
-        <div className="verse-arabic">{verse.arabic}</div>
+      <div className="bg-accent-subtle rounded-2xl p-6 md:p-8 text-center mb-8">
+        <p dir="rtl" lang="ar" className="font-arabic text-2xl md:text-3xl text-ink leading-loose">
+          {verse.arabic}
+        </p>
       </div>
 
-      <div className="compare-grid">
+      <div className="grid gap-4 sm:grid-cols-2">
         {translations.map(t => (
-          <div className="compare-card" key={t.label}>
-            <div className="compare-label">{t.label}</div>
-            <div className={`compare-text ${t.lang === 'bn' ? 'bengali' : ''}`}>
+          <Card key={t.label} className="p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-2">
+              {t.label}
+            </p>
+            <p
+              dir={t.lang === 'bn' ? 'ltr' : 'ltr'}
+              className="text-sm text-ink-2 leading-relaxed"
+              style={t.lang === 'bn' ? { fontFamily: 'var(--font-bengali-ui)' } : undefined}
+            >
               {t.text}
-            </div>
-          </div>
+            </p>
+          </Card>
         ))}
       </div>
 
-      <nav className="reader-nav" style={{ marginTop: 32 }}>
+      <nav className="flex items-center justify-between mt-8">
         {ayahNum > 1 ? (
-          <Link className="reader-nav-btn" href={`/quran/compare?surah=${surahNum}&ayah=${ayahNum - 1}`}>
-            ← Previous
-          </Link>
+          <Button
+            href={`/quran/compare?surah=${surahNum}&ayah=${ayahNum - 1}`}
+            variant="ghost"
+          >
+            &larr; Previous
+          </Button>
         ) : <span />}
         {ayahNum < verse.numberOfAyahs ? (
-          <Link className="reader-nav-btn" href={`/quran/compare?surah=${surahNum}&ayah=${ayahNum + 1}`}>
-            Next →
-          </Link>
+          <Button
+            href={`/quran/compare?surah=${surahNum}&ayah=${ayahNum + 1}`}
+            variant="ghost"
+          >
+            Next &rarr;
+          </Button>
         ) : <span />}
       </nav>
-    </div>
+    </PageShell>
   );
 }
 
 export default function ComparePage() {
   return (
-    <Suspense fallback={<div className="page-container"><div className="empty-state"><p>Loading...</p></div></div>}>
+    <Suspense
+      fallback={
+        <PageShell eyebrow="Translation Comparison" title="Loading...">
+          <Skeleton className="h-40 rounded-xl" />
+        </PageShell>
+      }
+    >
       <CompareContent />
     </Suspense>
   );

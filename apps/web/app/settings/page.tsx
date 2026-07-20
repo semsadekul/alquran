@@ -1,97 +1,177 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getSettings, type LegacySettings } from '@/lib/storage/indexeddb';
+import { PageShell } from '@/components/ui/PageShell';
+import { Card } from '@/components/ui/Card';
+import { Toggle } from '@/components/ui/Toggle';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { useTheme } from '@/components/providers/ThemeProvider';
+import { useLocale } from '@/components/providers/LocaleProvider';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { ReaderPreferences } from '@alquran/types';
+import { Sun, Moon, Monitor } from 'lucide-react';
 
-const defaultSettings: LegacySettings = {
+const defaultPrefs: ReaderPreferences = {
   theme: 'dark',
-  arabicFont: 'amiri',
-  fontSizeMultiplier: 1.0,
+  arabicFontSize: 38,
+  banglaFontSize: 16,
+  englishFontSize: 15,
   showArabic: true,
-  showTransliteration: true,
   showBangla: true,
-  showBanglaTransliteration: true,
   showEnglish: true,
-  sidebarCollapsed: false
+  showTransliteration: false,
+  showBanglaTransliteration: false,
+  lineSpacing: 'normal',
+  readingMode: 'study',
 };
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<LegacySettings>(defaultSettings);
-  const [loading, setLoading] = useState(true);
+  const { theme, setTheme } = useTheme();
+  const { locale, setLocale, t } = useLocale();
+  const [preferences, setPreferences] = useLocalStorage<ReaderPreferences>(
+    'alquran_preferences',
+    defaultPrefs,
+  );
 
-  useEffect(() => {
-    getSettings()
-      .then(data => { if (data) setSettings(data); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="page-container">
-        <div className="empty-state">Loading settings…</div>
-      </div>
-    );
-  }
+  const updatePref = (partial: Partial<ReaderPreferences>) => {
+    setPreferences({ ...preferences, ...partial });
+  };
 
   return (
-    <div className="page-container">
-      <section className="page-hero">
-        <p className="eyebrow">Settings</p>
-        <h1>Settings & Display</h1>
-        <p className="lede">Adjust reading density, typography, language visibility, and theme comfort.</p>
-      </section>
+    <PageShell
+      title={t('settings.title')}
+      eyebrow="Settings"
+      lede="Adjust reading density, typography, language visibility, and theme comfort."
+    >
+      <div className="space-y-6 max-w-2xl">
+        {/* Theme */}
+        <Card>
+          <h3 className="font-semibold text-ink mb-4 flex items-center gap-2">
+            {theme === 'dark' ? <Moon size={18} /> : theme === 'light' ? <Sun size={18} /> : <Monitor size={18} />}
+            {t('settings.theme')}
+          </h3>
+          <SegmentedControl
+            segments={[
+              { id: 'light', label: t('settings.light') },
+              { id: 'dark', label: t('settings.dark') },
+              { id: 'system', label: t('settings.system') },
+            ]}
+            value={theme}
+            onChange={(id) => setTheme(id as 'light' | 'dark' | 'system')}
+          />
+        </Card>
 
-      <div className="settings-groups">
-        <div className="settings-group">
-          <h3>Display Options</h3>
-          <SettingToggle label="Arabic Text" description="Show original Arabic Uthmani script" checked={settings.showArabic} />
-          <SettingToggle label="Transliteration" description="Show English phonetic pronunciation" checked={settings.showTransliteration} />
-          <SettingToggle label="Bangla Meaning" description="Show Muhiuddin Khan Bengali translation" checked={settings.showBangla} />
-          <SettingToggle label="Bangla Pronunciation" description="Show Bengali phonetic pronunciation" checked={settings.showBanglaTransliteration} />
-          <SettingToggle label="English Meaning" description="Show Saheeh International translation" checked={settings.showEnglish} />
-        </div>
+        {/* Language */}
+        <Card>
+          <h3 className="font-semibold text-ink mb-4">{t('settings.language')}</h3>
+          <SegmentedControl
+            segments={[
+              { id: 'bn', label: t('settings.bangla') },
+              { id: 'en', label: t('settings.english') },
+            ]}
+            value={locale}
+            onChange={(id) => setLocale(id as 'en' | 'bn')}
+          />
+        </Card>
 
-        <div className="settings-group">
-          <h3>Visual Style</h3>
-          <div className="setting-row">
+        {/* Font Size */}
+        <Card>
+          <h3 className="font-semibold text-ink mb-4">{t('settings.font_size')}</h3>
+          <div className="space-y-4">
             <div>
-              <div className="setting-label">Arabic Font</div>
-              <div className="setting-desc">{settings.arabicFont === 'amiri' ? 'Amiri (Classical)' : 'Scheherazade New (Thin)'}</div>
+              <label className="flex justify-between text-sm text-ink-2 mb-2">
+                <span>{t('settings.arabic_size')}</span>
+                <span className="font-mono text-ink-4">{preferences.arabicFontSize}px</span>
+              </label>
+              <input
+                type="range"
+                min="28"
+                max="60"
+                value={preferences.arabicFontSize}
+                onChange={(e) => updatePref({ arabicFontSize: Number(e.target.value) })}
+                className="w-full accent-majestic-gold"
+              />
+            </div>
+            <div>
+              <label className="flex justify-between text-sm text-ink-2 mb-2">
+                <span>{t('settings.translation_size')}</span>
+                <span className="font-mono text-ink-4">{preferences.banglaFontSize}px</span>
+              </label>
+              <input
+                type="range"
+                min="13"
+                max="22"
+                value={preferences.banglaFontSize}
+                onChange={(e) =>
+                  updatePref({
+                    banglaFontSize: Number(e.target.value),
+                    englishFontSize: Number(e.target.value) - 1,
+                  })
+                }
+                className="w-full accent-majestic-gold"
+              />
             </div>
           </div>
-          <div className="setting-row">
-            <div>
-              <div className="setting-label">Font Scale</div>
-              <div className="setting-desc">{Math.round(settings.fontSizeMultiplier * 100)}%</div>
-            </div>
+        </Card>
+
+        {/* Display Options */}
+        <Card>
+          <h3 className="font-semibold text-ink mb-4">Display Options</h3>
+          <div className="space-y-4">
+            <SettingRow
+              label="Arabic Text"
+              description="Show original Arabic Uthmani script"
+              checked={preferences.showArabic}
+              onChange={(v) => updatePref({ showArabic: v })}
+            />
+            <SettingRow
+              label="Bangla Translation"
+              description="Show Muhiuddin Khan Bengali translation"
+              checked={preferences.showBangla}
+              onChange={(v) => updatePref({ showBangla: v })}
+            />
+            <SettingRow
+              label="English Translation"
+              description="Show Saheeh International translation"
+              checked={preferences.showEnglish}
+              onChange={(v) => updatePref({ showEnglish: v })}
+            />
+            <SettingRow
+              label="Transliteration"
+              description="Show English phonetic pronunciation"
+              checked={preferences.showTransliteration}
+              onChange={(v) => updatePref({ showTransliteration: v })}
+            />
+            <SettingRow
+              label="Bangla Pronunciation"
+              description="Show Bengali phonetic pronunciation"
+              checked={preferences.showBanglaTransliteration}
+              onChange={(v) => updatePref({ showBanglaTransliteration: v })}
+            />
           </div>
-          <div className="setting-row">
-            <div>
-              <div className="setting-label">Theme</div>
-              <div className="setting-desc">{settings.theme === 'dark' ? 'Emerald Dark' : 'Sage Light'}</div>
-            </div>
-          </div>
-        </div>
+        </Card>
       </div>
-
-      <p className="settings-note">
-        Settings are read from your existing app. Editing will be supported once the new app has full IndexedDB write access.
-      </p>
-    </div>
+    </PageShell>
   );
 }
 
-function SettingToggle({ label, description, checked }: { label: string; description: string; checked: boolean }) {
+function SettingRow({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
-    <div className="setting-row">
-      <div>
-        <div className="setting-label">{label}</div>
-        <div className="setting-desc">{description}</div>
+    <div className="flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <div className="text-sm font-medium text-ink">{label}</div>
+        <div className="text-xs text-ink-3">{description}</div>
       </div>
-      <div className={`toggle-indicator ${checked ? 'on' : 'off'}`}>
-        {checked ? 'On' : 'Off'}
-      </div>
+      <Toggle checked={checked} onChange={onChange} label={label} />
     </div>
   );
 }

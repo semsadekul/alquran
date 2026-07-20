@@ -2,6 +2,12 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import { PageShell } from '@/components/ui/PageShell';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { cn } from '@/lib/cn';
 
 interface VerseMatch {
   number: number;
@@ -14,6 +20,8 @@ interface VerseMatch {
 }
 
 type SearchMode = 'all' | 'arabic' | 'bangla' | 'english' | 'transliteration';
+
+const SEARCH_MODES: SearchMode[] = ['all', 'arabic', 'bangla', 'english', 'transliteration'];
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
@@ -33,9 +41,9 @@ export default function SearchPage() {
       const res = await fetch('/search-index.json');
       if (res.ok) {
         const allVerses = await res.json();
-        
-        function matchesQuery(text: string, query: string) {
-          return text.toLowerCase().includes(query.toLowerCase());
+
+        function matchesQuery(text: string, q: string) {
+          return text.toLowerCase().includes(q.toLowerCase());
         }
 
         const q = trimmed.toLowerCase();
@@ -65,67 +73,100 @@ export default function SearchPage() {
     }
   }, [query, mode]);
 
-  const modes: SearchMode[] = ['all', 'arabic', 'bangla', 'english', 'transliteration'];
-
   return (
-    <div className="shell">
-      <section className="hero">
-        <p className="eyebrow">Search</p>
-        <h1>কুরআন অনুসন্ধান</h1>
-        <p className="lede">Find verses by Arabic, Bengali, English, or transliteration.</p>
-      </section>
-
-      <div className="search-box">
+    <PageShell
+      eyebrow="Search"
+      title="কুরআন অনুসন্ধান"
+      lede="Find verses by Arabic, Bengali, English, or transliteration."
+    >
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <input
-          className="search-input"
           type="text"
-          placeholder="Type search term (e.g., mercy, رحمة, ক্ষমা)…"
+          placeholder="Type search term (e.g., mercy, رحمة, ক্ষমা)..."
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSearch()}
+          className={cn(
+            'flex-1 px-4 py-3 min-h-[44px] rounded-xl text-sm',
+            'bg-surface border border-line text-ink placeholder:text-ink-4',
+            'focus:outline-none focus:ring-2 focus:ring-[var(--border-focus)]',
+          )}
         />
-        <button className="search-btn" onClick={handleSearch} disabled={loading}>
-          {loading ? 'Searching…' : 'Search'}
-        </button>
+        <Button onClick={handleSearch} disabled={loading} loading={loading}>
+          {loading ? 'Searching...' : 'Search'}
+        </Button>
       </div>
 
-      <div className="search-modes">
-        {modes.map(m => (
+      <div className="flex flex-wrap gap-2 mb-6">
+        {SEARCH_MODES.map(m => (
           <button
             key={m}
-            className={`mode-chip ${mode === m ? 'active' : ''}`}
+            type="button"
             onClick={() => setMode(m)}
+            className={cn(
+              'px-3 py-1.5 text-sm font-medium rounded-full min-h-[44px] min-w-[44px] transition-colors',
+              mode === m
+                ? 'bg-accent-subtle text-accent border border-accent/20'
+                : 'bg-[var(--surface-muted)] text-ink-3 border border-line hover:text-ink',
+            )}
           >
             {m === 'all' ? 'All' : m.charAt(0).toUpperCase() + m.slice(1)}
           </button>
         ))}
       </div>
 
-      {searched && !loading && (
-        <div className="search-summary">
-          {results.length === 0
-            ? `No results for "${query.trim()}".`
-            : `Found ${results.length} matches for "${query.trim()}".`}
+      {loading && (
+        <div className="space-y-3 mb-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
         </div>
       )}
 
-      <div className="search-results">
+      {searched && !loading && (
+        <p className="text-sm text-ink-3 mb-4">
+          {results.length === 0
+            ? `No results for "${query.trim()}".`
+            : `Found ${results.length} matches for "${query.trim()}".`}
+        </p>
+      )}
+
+      <div className="space-y-3">
         {results.map(r => (
           <Link
-            className="search-result-card"
             href={`/quran/surahs/${r.surah}`}
             key={r.number}
+            className="block"
           >
-            <div className="search-result-header">
-              <span>Surah {r.surah}, Verse {r.ayah}</span>
-              <span>{r.surah}:{r.ayah}</span>
-            </div>
-            <div className="search-result-arabic">{r.arabic}</div>
-            <p className="search-result-bangla">{r.bangla}</p>
-            <p className="search-result-english">{r.english}</p>
+            <Card variant="interactive" className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-ink-2">
+                  Surah {r.surah}, Verse {r.ayah}
+                </span>
+                <span className="text-xs text-ink-4">
+                  {r.surah}:{r.ayah}
+                </span>
+              </div>
+              <p dir="rtl" lang="ar" className="font-arabic text-lg text-ink leading-relaxed mb-2">
+                {r.arabic}
+              </p>
+              <p className="text-sm text-ink-2 mb-1" style={{ fontFamily: 'var(--font-bengali-ui)' }}>
+                {r.bangla}
+              </p>
+              <p className="text-sm text-ink-3">
+                {r.english}
+              </p>
+            </Card>
           </Link>
         ))}
       </div>
-    </div>
+
+      {searched && !loading && results.length === 0 && (
+        <EmptyState
+          title="No results found"
+          hint={`Try a different search term or mode for "${query.trim()}".`}
+        />
+      )}
+    </PageShell>
   );
 }

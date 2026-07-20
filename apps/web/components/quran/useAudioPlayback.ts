@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getAyahSrc } from '@/lib/audio/audioSource';
 import { getEveryAyahUrl } from './audio-utils';
 import type { ReaderAyah, ReaderSurah } from './types';
 
@@ -40,6 +41,7 @@ const DEFAULT_VOLUME = 0.8;
 export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlaybackApi {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isMountedRef = useRef(true);
+  const resolvedUrlRef = useRef<string | null>(null);
 
   const [state, setState] = useState<AudioPlaybackState>({
     mode: null,
@@ -60,7 +62,7 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
     return state.playlist[state.currentIndex] ?? null;
   }, [state.currentIndex, state.playlist]);
 
-  // Create the Audio element once; track mounted state for async safety.
+  // Create the Audio element once
   useEffect(() => {
     isMountedRef.current = true;
     const audio = new Audio();
@@ -69,7 +71,7 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
 
     const handleEnded = () => {
       if (!isMountedRef.current) return;
-      setState(prev => {
+      setState((prev) => {
         if (prev.currentIndex + 1 < prev.playlist.length) {
           return { ...prev, currentIndex: prev.currentIndex + 1, currentTime: 0, duration: 0 };
         }
@@ -88,34 +90,39 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
 
     const handleTimeUpdate = () => {
       if (!isMountedRef.current) return;
-      setState(prev => ({ ...prev, currentTime: audio.currentTime, duration: audio.duration || 0 }));
+      setState((prev) => ({
+        ...prev,
+        currentTime: audio.currentTime,
+        duration: audio.duration || 0,
+      }));
     };
 
     const handleLoadedMetadata = () => {
       if (!isMountedRef.current) return;
-      setState(prev => ({ ...prev, duration: audio.duration || 0 }));
+      setState((prev) => ({ ...prev, duration: audio.duration || 0 }));
     };
 
     const handleError = () => {
       if (!isMountedRef.current) return;
-      setState(prev => ({
+      // Don't wipe the whole playlist — just show an error for the current ayah
+      setState((prev) => ({
         ...prev,
-        mode: null,
         isPlaying: false,
-        playlist: [],
-        currentIndex: -1,
-        currentTime: 0,
-        duration: 0,
-        activeAyahKey: null,
-        errorMessage: 'Recitation streaming requires an internet connection.',
+        errorMessage:
+          !navigator.onLine
+            ? 'This surah isn\'t downloaded. Download it from the Offline page to listen offline.'
+            : 'Could not play this verse. Skipping to next...',
       }));
-      try {
-        audio.pause();
-        audio.removeAttribute('src');
-        audio.load();
-      } catch {
-        // noop
-      }
+      // Auto-skip to next after a brief delay
+      setTimeout(() => {
+        if (!isMountedRef.current) return;
+        setState((prev) => {
+          if (prev.currentIndex + 1 < prev.playlist.length) {
+            return { ...prev, currentIndex: prev.currentIndex + 1, currentTime: 0, duration: 0, errorMessage: null };
+          }
+          return { ...prev, isPlaying: false, errorMessage: null };
+        });
+      }, 2000);
     };
 
     audio.addEventListener('ended', handleEnded);
@@ -134,45 +141,78 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
     };
   }, []);
 
-  // Load and play whenever currentAyah changes.
+  // Update Media Session metadata
+  const updateMediaSession = useCallback(
+    (ayah: ReaderAyah) => {
+      if (!('mediaSession' in navigator)) return;
+      const surahName = currentSurah?.englishName ?? `Surah ${ayah.surah}`;
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: `Verse ${ayah.surah}:${ayah.ayah}`,
+        artist: surahName,
+        album: 'Al Quran',
+      });
+    },
+    [currentSurah],
+  );
+
+  // Load and play whenever currentAyah changes
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentAyah) return;
 
-    const nextUrl = getEveryAyahUrl(currentAyah.surah, currentAyah.ayah, state.reciterId);
-    if (audio.src === nextUrl) return;
+    let cancelled = false;
 
-    audio.src = nextUrl;
-    audio.playbackRate = state.playbackRate;
-    // Setting `src` auto-triggers a load; do NOT call audio.load() here —
-    // it aborts the pending play() and causes an AbortError.
+    async function resolveAndPlay() {
+      // Resolve URL: local file if downloaded, else remote
+      const url = await getAyahSrc(
+        currentAyah!.surah,
+        currentAyah!.ayah,
+        state.reciterId,
+      );
 
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          if (!isMountedRef.current) return;
-          setState(prev => ({
-            ...prev,
-            isPlaying: true,
-            activeAyahKey: `${currentAyah.surah}-${currentAyah.ayah}`,
-            errorMessage: null,
-          }));
-        })
-        .catch(() => {
-          if (!isMountedRef.current) return;
-          setState(prev => ({
-            ...prev,
-            mode: null,
-            isPlaying: false,
-            playlist: [],
-            currentIndex: -1,
-            activeAyahKey: null,
-            errorMessage: 'Could not stream audio recitation. Verify your internet connection.',
-          }));
-        });
+      if (cancelled || !audioRef.current) return;
+      const audio = audioRef.current;
+
+      // Skip if already playing this URL
+      if (resolvedUrlRef.current === url) return;
+      resolvedUrlRef.current = url;
+
+      audio.src = url;
+      audio.playbackRate = state.playbackRate;
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            if (!isMountedRef.current) return;
+            setState((prev) => ({
+              ...prev,
+              isPlaying: true,
+              activeAyahKey: `${currentAyah!.surah}-${currentAyah!.ayah}`,
+              errorMessage: null,
+            }));
+            updateMediaSession(currentAyah!);
+          })
+          .catch(() => {
+            if (!isMountedRef.current) return;
+            setState((prev) => ({
+              ...prev,
+              isPlaying: false,
+              errorMessage: !navigator.onLine
+                ? 'This surah isn\'t downloaded. Download it from the Offline page to listen offline.'
+                : 'Could not stream audio. Check your internet connection.',
+            }));
+          });
+      }
     }
-  }, [currentAyah, state.reciterId]);
+
+    resolveAndPlay();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAyah, state.reciterId, state.playbackRate, updateMediaSession]);
 
   const stop = useCallback(() => {
     const audio = audioRef.current;
@@ -181,7 +221,8 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
       audio.removeAttribute('src');
       audio.load();
     }
-    setState(prev => ({
+    resolvedUrlRef.current = null;
+    setState((prev) => ({
       ...prev,
       mode: null,
       isPlaying: false,
@@ -193,45 +234,57 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
     }));
   }, []);
 
-  const playSurah = useCallback(async (playlist: ReaderAyah[], startAyah?: number | null) => {
-    if (!playlist.length) return;
-    const startIndex = startAyah
-      ? Math.max(0, playlist.findIndex(item => item.ayah === startAyah))
-      : 0;
+  const playSurah = useCallback(
+    async (playlist: ReaderAyah[], startAyah?: number | null) => {
+      if (!playlist.length) return;
+      const startIndex = startAyah
+        ? Math.max(0, playlist.findIndex((item) => item.ayah === startAyah))
+        : 0;
+      resolvedUrlRef.current = null; // Force re-resolve
+      setState((prev) => ({
+        ...prev,
+        mode: 'reader',
+        playlist,
+        currentIndex: startIndex,
+        currentTime: 0,
+        duration: 0,
+        errorMessage: null,
+      }));
+    },
+    [],
+  );
 
-    setState(prev => ({
-      ...prev,
-      mode: 'reader',
-      playlist,
-      currentIndex: startIndex,
-      currentTime: 0,
-      duration: 0,
-      errorMessage: null,
-    }));
-  }, []);
+  const playCurrentSurahFromStart = useCallback(
+    async (playlist: ReaderAyah[]) => {
+      await playSurah(playlist, 1);
+    },
+    [playSurah],
+  );
 
-  const playCurrentSurahFromStart = useCallback(async (playlist: ReaderAyah[]) => {
-    await playSurah(playlist, 1);
-  }, [playSurah]);
-
-  const playAyah = useCallback(async (ayah: ReaderAyah, playlist: ReaderAyah[]) => {
-    const list = playlist.length ? playlist : [ayah];
-    const startIndex = list.findIndex(item => item.surah === ayah.surah && item.ayah === ayah.ayah);
-    if (startIndex < 0) return;
-
-    setState(prev => ({
-      ...prev,
-      mode: 'reader',
-      playlist: list,
-      currentIndex: startIndex,
-      currentTime: 0,
-      duration: 0,
-      errorMessage: null,
-    }));
-  }, []);
+  const playAyah = useCallback(
+    async (ayah: ReaderAyah, playlist: ReaderAyah[]) => {
+      const list = playlist.length ? playlist : [ayah];
+      const startIndex = list.findIndex(
+        (item) => item.surah === ayah.surah && item.ayah === ayah.ayah,
+      );
+      if (startIndex < 0) return;
+      resolvedUrlRef.current = null;
+      setState((prev) => ({
+        ...prev,
+        mode: 'reader',
+        playlist: list,
+        currentIndex: startIndex,
+        currentTime: 0,
+        duration: 0,
+        errorMessage: null,
+      }));
+    },
+    [],
+  );
 
   const playNext = useCallback(() => {
-    setState(prev => {
+    resolvedUrlRef.current = null;
+    setState((prev) => {
       if (prev.currentIndex + 1 < prev.playlist.length) {
         return { ...prev, currentIndex: prev.currentIndex + 1, currentTime: 0, duration: 0 };
       }
@@ -240,7 +293,8 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
   }, []);
 
   const playPrev = useCallback(() => {
-    setState(prev => {
+    resolvedUrlRef.current = null;
+    setState((prev) => {
       if (prev.currentIndex - 1 >= 0) {
         return { ...prev, currentIndex: prev.currentIndex - 1, currentTime: 0, duration: 0 };
       }
@@ -254,18 +308,18 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
 
     if (state.isPlaying) {
       audio.pause();
-      setState(prev => ({ ...prev, isPlaying: false }));
+      setState((prev) => ({ ...prev, isPlaying: false }));
       return;
     }
 
     try {
       await audio.play();
       if (isMountedRef.current) {
-        setState(prev => ({ ...prev, isPlaying: true, errorMessage: null }));
+        setState((prev) => ({ ...prev, isPlaying: true, errorMessage: null }));
       }
     } catch {
       if (isMountedRef.current) {
-        setState(prev => ({ ...prev, errorMessage: 'Could not resume playback.' }));
+        setState((prev) => ({ ...prev, errorMessage: 'Could not resume playback.' }));
       }
     }
   }, [currentAyah, state.isPlaying]);
@@ -280,31 +334,54 @@ export function useAudioPlayback(currentSurah: ReaderSurah | null): ReaderPlayba
     const audio = audioRef.current;
     const safe = Math.max(0, Math.min(1, value));
     if (audio) audio.volume = safe;
-    setState(prev => ({ ...prev, volume: safe }));
+    setState((prev) => ({ ...prev, volume: safe }));
   }, []);
 
   const setReciter = useCallback((id: string) => {
-    setState(prev => ({ ...prev, reciterId: id }));
-    // If playing, we need to restart the current ayah to apply the new reciter immediately
-    const audio = audioRef.current;
-    if (audio && audio.src && !audio.paused) {
-        // Will be handled automatically by the effect since getEveryAyahUrl dependency changed...
-        // Actually, state.reciterId is not in the dependency array of the effect. 
-        // We should just let the user re-play, or we can reload here.
-    }
+    setState((prev) => ({ ...prev, reciterId: id }));
+    // Force re-resolve for the current ayah
+    resolvedUrlRef.current = null;
   }, []);
 
   const setPlaybackRate = useCallback((rate: number) => {
     const audio = audioRef.current;
     if (audio) audio.playbackRate = rate;
-    setState(prev => ({ ...prev, playbackRate: rate }));
+    setState((prev) => ({ ...prev, playbackRate: rate }));
   }, []);
 
-  const stopForModeSwitch = useCallback((nextMode: 'reader' | 'hifz') => {
-    if (state.mode && state.mode !== nextMode) {
-      stop();
-    }
-  }, [state.mode, stop]);
+  const stopForModeSwitch = useCallback(
+    (nextMode: 'reader' | 'hifz') => {
+      if (state.mode && state.mode !== nextMode) {
+        stop();
+      }
+    },
+    [state.mode, stop],
+  );
+
+  // Media Session action handlers (lock-screen controls on Android)
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.setActionHandler('play', () => {
+      togglePlayPause();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      togglePlayPause();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      playPrev();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      playNext();
+    });
+
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler('nexttrack', null);
+    };
+  }, [togglePlayPause, playPrev, playNext]);
 
   return {
     state,

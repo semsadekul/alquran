@@ -4,6 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Search, LayoutGrid, List } from 'lucide-react';
 import type { Surah } from '@alquran/types';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { cn } from '@/lib/cn';
 
 export function SurahListClient({ initialSurahs }: { initialSurahs: Surah[] }) {
   const [search, setSearch] = useState('');
@@ -11,214 +15,122 @@ export function SurahListClient({ initialSurahs }: { initialSurahs: Surah[] }) {
   const [filter, setFilter] = useState<'all' | 'Meccan' | 'Medinan'>('all');
 
   const filteredSurahs = initialSurahs.filter((surah) => {
-    const matchesSearch = 
+    const matchesSearch =
       surah.englishName.toLowerCase().includes(search.toLowerCase()) ||
       surah.englishNameTranslation.toLowerCase().includes(search.toLowerCase()) ||
       (surah.banglaName && surah.banglaName.includes(search)) ||
       surah.number.toString() === search;
-      
     const matchesFilter = filter === 'all' || surah.revelationType === filter;
-    
     return matchesSearch && matchesFilter;
   });
 
   return (
     <>
-      <div className="controls-bar">
-        <div className="search-input-wrapper">
-          <Search className="search-icon" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search surah..." 
+      {/* Controls bar */}
+      <div className="flex flex-wrap gap-3 justify-between items-center mb-6">
+        {/* Search input */}
+        <div className="flex items-center bg-surface border border-line rounded-full px-4 py-2 flex-1 min-w-[200px] focus-within:border-[var(--border-focus)] transition-colors">
+          <Search size={18} className="text-ink-3 mr-2 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search surah..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
+            className="flex-1 bg-transparent border-none outline-none text-ink text-sm min-w-0"
           />
         </div>
-        
-        <div className="filters">
-          <select 
-            value={filter} 
-            onChange={(e) => setFilter(e.target.value as any)}
-            className="filter-select"
+
+        <div className="flex items-center gap-2">
+          {/* Filter */}
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as 'all' | 'Meccan' | 'Medinan')}
+            className="bg-surface border border-line text-ink text-sm px-3 py-2 rounded-xl min-h-[40px] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
           >
             <option value="all">All</option>
             <option value="Meccan">Meccan</option>
             <option value="Medinan">Medinan</option>
           </select>
-          
-          <div className="view-toggles">
-            <button 
-              className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+
+          {/* View toggle */}
+          <div className="flex bg-[var(--surface-muted)] rounded-xl p-1 gap-0.5">
+            <button
+              type="button"
               onClick={() => setViewMode('list')}
+              className={cn(
+                'p-1.5 rounded-lg transition-colors',
+                viewMode === 'list'
+                  ? 'bg-surface text-accent shadow-sm'
+                  : 'text-ink-3 hover:text-ink',
+              )}
+              aria-label="List view"
             >
-              <List size={20} />
+              <List size={18} />
             </button>
-            <button 
-              className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+            <button
+              type="button"
               onClick={() => setViewMode('grid')}
+              className={cn(
+                'p-1.5 rounded-lg transition-colors',
+                viewMode === 'grid'
+                  ? 'bg-surface text-accent shadow-sm'
+                  : 'text-ink-3 hover:text-ink',
+              )}
+              aria-label="Grid view"
             >
-              <LayoutGrid size={20} />
+              <LayoutGrid size={18} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className={viewMode === 'grid' ? 'surah-grid' : 'surah-list'}>
-        {filteredSurahs.map(surah => (
+      {/* Surah list/grid */}
+      <div
+        className={
+          viewMode === 'grid'
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+            : 'flex flex-col gap-3'
+        }
+      >
+        {filteredSurahs.map((surah) => (
           <Link
-            className="surah-item"
             href={`/quran/surahs/${surah.number}`}
             key={surah.number}
           >
-            <div className="surah-number-badge">
-              <span className="badge-text">{surah.number}</span>
-            </div>
-            <div className="surah-info">
-              <div className="surah-name-en">{surah.englishName}</div>
-              <div className="surah-name-translation">{surah.englishNameTranslation}</div>
-              <div className="surah-meta">
-                {surah.revelationType} · {surah.numberOfAyahs} Ayahs
+            <Card variant="interactive" className="flex items-center gap-4">
+              {/* Number medallion */}
+              <div className="w-10 h-10 bg-[var(--surface-muted)] text-ink-2 flex items-center justify-center rounded-xl font-semibold text-sm shrink-0">
+                {surah.number}
               </div>
-            </div>
-            <div className="surah-arabic-name">{surah.name}</div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-ink">{surah.englishName}</div>
+                <div className="text-xs text-ink-3 mt-0.5">
+                  {surah.englishNameTranslation}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge tone={surah.revelationType === 'Meccan' ? 'green' : 'neutral'}>
+                    {surah.revelationType}
+                  </Badge>
+                  <span className="text-xs text-ink-4">
+                    {surah.numberOfAyahs} Ayahs
+                  </span>
+                </div>
+              </div>
+
+              {/* Arabic name */}
+              <div
+                dir="rtl"
+                lang="ar"
+                className="font-arabic text-xl text-[var(--arabic-text)] shrink-0"
+              >
+                {surah.name}
+              </div>
+            </Card>
           </Link>
         ))}
       </div>
-
-      <style jsx>{`
-        .controls-bar {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 16px;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 32px;
-        }
-        .search-input-wrapper {
-          display: flex;
-          align-items: center;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-full);
-          padding: 8px 16px;
-          flex: 1;
-          min-width: 240px;
-        }
-        .search-input-wrapper:focus-within {
-          border-color: var(--border-focus);
-        }
-        .search-icon {
-          color: var(--text-3);
-          margin-right: 8px;
-        }
-        .search-input {
-          flex: 1;
-          background: transparent;
-          border: none;
-          color: var(--text-1);
-          outline: none;
-          font-family: var(--font-sans);
-        }
-        .filters {
-          display: flex;
-          gap: 16px;
-          align-items: center;
-        }
-        .filter-select {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          color: var(--text-1);
-          padding: 8px 16px;
-          border-radius: var(--radius-full);
-          outline: none;
-        }
-        .view-toggles {
-          display: flex;
-          background: var(--surface-muted);
-          border-radius: var(--radius-full);
-          padding: 4px;
-        }
-        .toggle-btn {
-          background: transparent;
-          border: none;
-          padding: 6px 12px;
-          border-radius: var(--radius-full);
-          color: var(--text-3);
-          cursor: pointer;
-          transition: all var(--duration-fast);
-        }
-        .toggle-btn.active {
-          background: var(--surface);
-          color: var(--accent);
-          box-shadow: var(--shadow-sm);
-        }
-        .surah-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 16px;
-        }
-        .surah-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .surah-item {
-          display: flex;
-          align-items: center;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-lg);
-          padding: 16px;
-          transition: transform var(--duration-normal), border-color var(--duration-normal);
-        }
-        .surah-item:hover {
-          transform: translateY(-2px);
-          border-color: var(--border-focus);
-        }
-        .surah-number-badge {
-          width: 40px;
-          height: 40px;
-          background: var(--surface-muted);
-          color: var(--text-2);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: var(--radius-md);
-          font-weight: 600;
-          margin-right: 16px;
-          transform: rotate(45deg);
-        }
-        .badge-text {
-          transform: rotate(-45deg);
-        }
-        .surah-info {
-          flex: 1;
-        }
-        .surah-name-en {
-          font-weight: 600;
-          font-size: 1.1rem;
-          color: var(--text-1);
-        }
-        .surah-name-translation {
-          font-size: 0.85rem;
-          color: var(--text-3);
-          margin-top: 2px;
-        }
-        .surah-meta {
-          font-size: 0.8rem;
-          color: var(--text-4);
-          margin-top: 4px;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-        .surah-arabic-name {
-          font-family: var(--font-arabic);
-          font-size: 1.5rem;
-          color: var(--arabic-text);
-          margin-left: 16px;
-        }
-      `}</style>
     </>
   );
 }

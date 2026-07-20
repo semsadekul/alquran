@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getBookmarks, type LegacyBookmark } from '@/lib/storage/indexeddb';
+import { PageShell } from '@/components/ui/PageShell';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function BookmarksPage() {
   const [bookmarks, setBookmarks] = useState<LegacyBookmark[]>([]);
@@ -16,34 +21,47 @@ export default function BookmarksPage() {
   }, []);
 
   return (
-    <div className="page-container">
-      <section className="page-hero">
-        <p className="eyebrow">Library</p>
-        <h1>Your Bookmarks</h1>
-        <p className="lede">Verses you saved for recitation, study, or memorization.</p>
-      </section>
-
+    <PageShell
+      eyebrow="Library"
+      title="Your Bookmarks"
+      lede="Verses you saved for recitation, study, or memorization."
+    >
       {loading ? (
-        <div className="empty-state">Loading bookmarks…</div>
-      ) : bookmarks.length === 0 ? (
-        <div className="empty-state">
-          <p>No bookmarks saved yet. Add bookmarks while reading the Quran to see them here.</p>
-          <Link className="reader-nav-btn" href="/quran/surahs">Browse Surahs</Link>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
         </div>
+      ) : bookmarks.length === 0 ? (
+        <EmptyState
+          title="No bookmarks saved yet"
+          hint="Add bookmarks while reading the Quran to see them here."
+          action={
+            <Button href="/quran/surahs" variant="gold">
+              Browse Surahs
+            </Button>
+          }
+        />
       ) : (
-        <div className="bookmarks-list">
+        <div className="space-y-3">
           {bookmarks.map(bm => (
             <Link
-              className="bookmark-card"
               href={`/quran/surahs/${bm.surah}`}
               key={bm.surah_ayah}
+              className="block"
             >
-              <div className="bookmark-ref">{bm.surahName} — {bm.surah}:{bm.ayah}</div>
-              <p className="bookmark-preview">{bm.textPreview}</p>
+              <Card variant="interactive" className="p-4">
+                <p className="text-sm font-medium text-accent mb-1">
+                  {bm.surahName} &mdash; {bm.surah}:{bm.ayah}
+                </p>
+                <p className="text-sm text-ink-3 leading-relaxed line-clamp-2">
+                  {bm.textPreview}
+                </p>
+              </Card>
             </Link>
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

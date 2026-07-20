@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BookOpen } from 'lucide-react';
 import { ReadingPosition } from '@alquran/types';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export function ContinueReading() {
   const [position, setPosition] = useState<ReadingPosition | null>(null);
@@ -21,93 +24,40 @@ export function ContinueReading() {
 
   if (!position) {
     return (
-      <div className="continue-reading empty">
-        <p>No reading history yet.</p>
-        <Link href="/quran/surahs/1" className="start-btn">Start Reading Al-Fatiha</Link>
-        <style jsx>{`
-          .empty {
-            background: var(--surface);
-            border: 1px dashed var(--border);
-            border-radius: var(--radius-lg);
-            padding: 32px;
-            text-align: center;
-            color: var(--text-3);
-          }
-          .start-btn {
-            display: inline-block;
-            margin-top: 16px;
-            color: var(--accent);
-            font-weight: 600;
-          }
-        `}</style>
-      </div>
+      <EmptyState
+        icon={<BookOpen size={32} />}
+        title="No reading history yet"
+        hint="Start reading the Quran to track your progress."
+        action={
+          <Button variant="primary" href="/quran/surahs/1">
+            Start Reading Al-Fatiha
+          </Button>
+        }
+        className="border border-dashed border-line rounded-2xl bg-surface"
+      />
     );
   }
 
   return (
-    <div className="continue-reading">
-      <div className="cr-header">
-        <BookOpen size={20} className="cr-icon" />
-        <span className="cr-label">Continue Reading</span>
-      </div>
-      
-      <div className="cr-content">
-        <div>
-          <h3 className="cr-surah">{position.surahName}</h3>
-          <p className="cr-ayah">Ayah {position.ayah}</p>
-        </div>
-        <Link href={`/quran/surahs/${position.surah}#ayah-${position.ayah}`} className="resume-btn">
-          Resume
-        </Link>
+    <Card className="mb-6">
+      <div className="flex items-center gap-2 text-ink-3 mb-4">
+        <BookOpen size={20} />
+        <span className="text-sm font-semibold uppercase tracking-wider">Continue Reading</span>
       </div>
 
-      <style jsx>{`
-        .continue-reading {
-          background: linear-gradient(135deg, var(--surface) 0%, var(--surface-muted) 100%);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-lg);
-          padding: 24px;
-          margin-bottom: 24px;
-        }
-        .cr-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          color: var(--text-3);
-          margin-bottom: 16px;
-        }
-        .cr-label {
-          font-size: 0.875rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-        .cr-content {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-        }
-        .cr-surah {
-          font-size: 1.5rem;
-          color: var(--text-1);
-          margin-bottom: 4px;
-        }
-        .cr-ayah {
-          color: var(--text-2);
-          font-size: 0.95rem;
-        }
-        .resume-btn {
-          background: var(--accent);
-          color: white;
-          padding: 8px 24px;
-          border-radius: var(--radius-full);
-          font-weight: 600;
-          transition: background-color var(--duration-fast);
-        }
-        .resume-btn:hover {
-          background: var(--accent-hover);
-        }
-      `}</style>
-    </div>
+      <div className="flex justify-between items-end">
+        <div>
+          <h3 className="text-2xl font-bold text-ink mb-1">{position.surahName}</h3>
+          <p className="text-ink-2 text-[0.95rem]">Ayah {position.ayah}</p>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          href={`/quran/surahs/${position.surah}#ayah-${position.ayah}`}
+        >
+          Resume
+        </Button>
+      </div>
+    </Card>
   );
 }

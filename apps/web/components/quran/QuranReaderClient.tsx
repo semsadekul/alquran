@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { AudioDock } from './AudioDock';
 import type { ReaderAyah, ReaderSurah } from './types';
 import { useAudioPlayback } from './useAudioPlayback';
@@ -11,6 +11,14 @@ import { VerseActions } from './VerseActions';
 import { ReadingSettings } from './ReadingSettings';
 import { ReaderPreferences } from '@alquran/types';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { VerseCard } from '@/components/ui/VerseCard';
+import { Play, BookOpen, ArrowLeft, Download } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { useDownloads } from '@/components/audio/useDownloads';
+import { DownloadButton } from '@/components/audio/DownloadButton';
 
 const defaultPrefs: ReaderPreferences = {
   theme: 'dark',
@@ -23,13 +31,13 @@ const defaultPrefs: ReaderPreferences = {
   showTransliteration: false,
   showBanglaTransliteration: false,
   lineSpacing: 'normal',
-  readingMode: 'study'
+  readingMode: 'study',
 };
 
 export function QuranReaderClient({
   surah,
   verses,
-  showBismillah
+  showBismillah,
 }: {
   surah: ReaderSurah;
   verses: ReaderAyah[];
@@ -39,32 +47,43 @@ export function QuranReaderClient({
   const activeAyahKey = playback.state.activeAyahKey;
   const activeRef = useRef<HTMLDivElement | null>(null);
 
-  // Use custom hooks
-  useReadingProgress(surah.number, surah.englishName);
-  
-  const [preferences, setPreferences] = useLocalStorage<ReaderPreferences>('alquran_preferences', defaultPrefs);
+  useReadingProgress(surah.number, surah.englishName, surah.numberOfAyahs);
+
+  const { getRecord, manager } = useDownloads();
+  const downloadRecord = getRecord('Alafasy_128kbps', surah.number);
+
+  const [preferences, setPreferences] = useLocalStorage<ReaderPreferences>(
+    'alquran_preferences',
+    defaultPrefs,
+  );
 
   useKeyboardShortcuts({
     onNextVerse: () => {
-      // Logic for next verse can be built into playback or scrolled manually
       if (playback.state.isPlaying && playback.currentAyah) {
         const nextAyahNum = playback.currentAyah.ayah + 1;
         if (nextAyahNum <= surah.numberOfAyahs) {
-          const nextVerse = verses.find(v => v.ayah === nextAyahNum);
+          const nextVerse = verses.find((v) => v.ayah === nextAyahNum);
           if (nextVerse) playback.playAyah(nextVerse, verses);
         }
       } else {
-        // Just scroll down a bit
         window.scrollBy({ top: 100, behavior: 'smooth' });
       }
     },
     onPrevVerse: () => {
-      window.scrollBy({ top: -100, behavior: 'smooth' });
+      if (playback.state.isPlaying && playback.currentAyah) {
+        const prevAyahNum = playback.currentAyah.ayah - 1;
+        if (prevAyahNum >= 1) {
+          const prevVerse = verses.find((v) => v.ayah === prevAyahNum);
+          if (prevVerse) playback.playAyah(prevVerse, verses);
+        }
+      } else {
+        window.scrollBy({ top: -100, behavior: 'smooth' });
+      }
     },
     onTogglePlay: () => {
       if (playback.state.isPlaying) playback.togglePlayPause();
-      else playback.playCurrentSurahFromStart(verses); // simplified
-    }
+      else playback.playCurrentSurahFromStart(verses);
+    },
   });
 
   useEffect(() => {
@@ -74,273 +93,150 @@ export function QuranReaderClient({
   }, [activeAyahKey]);
 
   return (
-    <div 
-      className="reader-page"
+    <div
+      className="max-w-3xl mx-auto px-4 py-6 md:py-10 reader-content"
       style={{
         '--arabic-size-multiplier': preferences.arabicFontSize / 38,
         '--translation-size-multiplier': preferences.banglaFontSize / 16,
       } as React.CSSProperties}
     >
-      <header className="reader-header">
-        <div className="header-nav-row">
-          <Link className="back-link" href="/quran/surahs">← সূরা তালিকা</Link>
-          <ReadingSettings 
-            preferences={preferences} 
-            onChange={(newPrefs) => setPreferences({ ...preferences, ...newPrefs })} 
+      {/* Back link + settings */}
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          href="/quran/surahs"
+          className="inline-flex items-center gap-2 text-sm text-ink-2 hover:text-accent transition-colors min-h-[44px]"
+        >
+          <ArrowLeft size={16} />
+          সূরা তালিকা
+        </Link>
+        <ReadingSettings
+          preferences={preferences}
+          onChange={(newPrefs) =>
+            setPreferences({ ...preferences, ...newPrefs })
+          }
+        />
+      </div>
+
+      {/* Surah Header Card */}
+      <Card variant="hero" className="text-center mb-8 relative overflow-hidden">
+        {/* Surah number medallion */}
+        <div className="absolute top-4 left-4 w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center font-bold text-white/90 text-lg">
+          {surah.number}
+        </div>
+
+        <div dir="rtl" lang="ar" className="font-arabic text-4xl md:text-5xl text-white mb-3 mt-2">
+          {surah.name}
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
+          {surah.englishName}
+        </h1>
+        <p className="text-white/70 text-sm mb-4">
+          {surah.englishNameTranslation}
+        </p>
+
+        <div className="flex justify-center gap-3 mb-6">
+          <Badge tone="gold">{surah.revelationType}</Badge>
+          <Badge tone="gold">{surah.numberOfAyahs} Ayahs</Badge>
+        </div>
+
+        <div className="flex justify-center gap-3 flex-wrap items-center">
+          <Button
+            variant="gold"
+            onClick={() => playback.playCurrentSurahFromStart(verses)}
+            className="rounded-full"
+          >
+            <Play size={16} />
+            Play Surah
+          </Button>
+          <Button
+            variant="ghost"
+            href="/quran/hifz"
+            className="rounded-full text-white border-white/20 hover:bg-white/10"
+          >
+            <BookOpen size={16} />
+            Hifz Mode
+          </Button>
+          <DownloadButton
+            record={downloadRecord}
+            onDownload={() => manager.enqueueSurah('Alafasy_128kbps', surah.number, surah.numberOfAyahs)}
+            onPause={() => manager.pause(`Alafasy_128kbps:${surah.number}`)}
+            onResume={() => manager.resume(`Alafasy_128kbps:${surah.number}`)}
+            onDelete={() => manager.deleteSurah('Alafasy_128kbps', surah.number)}
+            className="text-white hover:bg-white/10"
           />
         </div>
-        
-        <div className="surah-header-card">
-          <div className="surah-header-number">{surah.number}</div>
-          <div className="surah-header-name-ar">{surah.name}</div>
-          <h1 className="surah-header-name-en">{surah.englishName}</h1>
-          <p className="surah-header-translation">{surah.englishNameTranslation}</p>
-          <div className="surah-header-meta">
-            <span>{surah.revelationType}</span>
-            <span>{surah.numberOfAyahs} Ayahs</span>
-          </div>
-          <div className="reader-header-actions">
-            <button className="reader-action-btn" onClick={() => playback.playCurrentSurahFromStart(verses)}>
-              ▶ Play Surah
-            </button>
-            <Link className="reader-action-btn secondary" href="/quran/hifz">
-              Hifz Mode
-            </Link>
-          </div>
-          {playback.state.errorMessage && (
-            <p className="reader-audio-error">{playback.state.errorMessage}</p>
-          )}
-        </div>
-      </header>
 
+        {playback.state.errorMessage && (
+          <p className="mt-4 text-sm text-red-300 bg-red-900/30 rounded-xl px-4 py-2">
+            {playback.state.errorMessage}
+          </p>
+        )}
+      </Card>
+
+      {/* Bismillah */}
       {showBismillah && (
-        <div className="bismillah-block">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+        <div className="bismillah mb-8">
+          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        </div>
       )}
 
-      <div className="verses-container reader-content">
-        {verses.map(verse => {
+      {/* Verses */}
+      <div className="space-y-2">
+        {verses.map((verse) => {
           const key = `${verse.surah}-${verse.ayah}`;
           const isActive = activeAyahKey === key;
           return (
-            <article
-              className={`verse-card ${isActive ? 'verse-card-active' : ''}`}
+            <div
               key={verse.number}
-              data-ayah={verse.ayah}
               ref={isActive ? activeRef : null}
             >
-              <div className="verse-top-controls-web">
-                <div className="verse-badge">{verse.surah}:{verse.ayah}</div>
-                <VerseActions 
-                  verse={verse} 
-                  onPlay={() => playback.playAyah(verse, verses)} 
-                />
-              </div>
-
-              {preferences.showArabic && (
-                <div className="verse-arabic">{verse.arabic}</div>
-              )}
-              
-              {preferences.showBangla && (
-                <div className="verse-translation">
-                  <span className="translation-label">Bangla</span>
-                  <p className="verse-bangla">{verse.bangla}</p>
-                </div>
-              )}
-              
-              {preferences.showEnglish && (
-                <div className="verse-translation">
-                  <span className="translation-label">English</span>
-                  <p className="verse-english">{verse.english}</p>
-                </div>
-              )}
-              
-              {preferences.showTransliteration && (
-                <div className="verse-transliteration">
-                  <span className="translation-label">Transliteration</span>
-                  <p>{verse.transliteration}</p>
-                </div>
-              )}
-              
-              {preferences.showBanglaTransliteration && verse.banglaTransliteration && (
-                <div className="verse-transliteration">
-                  <span className="translation-label">Bangla Pronunciation</span>
-                  <p>{verse.banglaTransliteration}</p>
-                </div>
-              )}
-            </article>
+              <VerseCard
+                verseNumber={verse.ayah}
+                arabic={verse.arabic}
+                bangla={verse.bangla}
+                english={verse.english}
+                transliteration={verse.transliteration}
+                banglaTransliteration={verse.banglaTransliteration}
+                isActive={isActive}
+                showBangla={preferences.showBangla}
+                showEnglish={preferences.showEnglish}
+                showTransliteration={
+                  preferences.showTransliteration ||
+                  preferences.showBanglaTransliteration
+                }
+                onPlay={() => playback.playAyah(verse, verses)}
+              />
+            </div>
           );
         })}
       </div>
 
-      <nav className="reader-nav">
+      {/* Surah navigation */}
+      <nav className="flex justify-between items-center mt-12 pt-8 border-t border-line">
         {surah.number > 1 ? (
-          <Link className="reader-nav-btn" href={`/quran/surahs/${surah.number - 1}`}>
+          <Link
+            href={`/quran/surahs/${surah.number - 1}`}
+            className="text-ink-2 hover:text-accent transition-colors font-medium min-h-[44px] inline-flex items-center"
+          >
             ← Previous Surah
           </Link>
-        ) : <span />}
+        ) : (
+          <span />
+        )}
         {surah.number < 114 ? (
-          <Link className="reader-nav-btn" href={`/quran/surahs/${surah.number + 1}`}>
+          <Link
+            href={`/quran/surahs/${surah.number + 1}`}
+            className="text-ink-2 hover:text-accent transition-colors font-medium min-h-[44px] inline-flex items-center"
+          >
             Next Surah →
           </Link>
-        ) : <span />}
+        ) : (
+          <span />
+        )}
       </nav>
 
+      {/* Audio Dock */}
       <AudioDock playback={playback} currentSurah={surah} />
-
-      <style jsx>{`
-        .header-nav-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-        }
-        .reader-page {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 24px;
-        }
-        .surah-header-card {
-          background: linear-gradient(to bottom right, var(--surface), var(--surface-muted));
-          border: 1px solid var(--border);
-          border-radius: var(--radius-xl);
-          padding: 40px 24px;
-          text-align: center;
-          margin-bottom: 40px;
-          position: relative;
-          overflow: hidden;
-        }
-        .surah-header-number {
-          position: absolute;
-          top: 24px;
-          left: 24px;
-          width: 48px;
-          height: 48px;
-          background: var(--surface-elevated);
-          border-radius: var(--radius-md);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          color: var(--text-2);
-          transform: rotate(45deg);
-        }
-        .surah-header-number::after {
-          content: '${surah.number}';
-          position: absolute;
-          transform: rotate(-45deg);
-        }
-        .surah-header-name-ar {
-          font-family: var(--font-arabic);
-          font-size: 3rem;
-          color: var(--arabic-text);
-          margin-bottom: 16px;
-        }
-        .surah-header-name-en {
-          font-size: 1.5rem;
-          margin-bottom: 4px;
-        }
-        .surah-header-translation {
-          color: var(--text-3);
-          font-size: 0.95rem;
-          margin-bottom: 16px;
-        }
-        .surah-header-meta {
-          display: flex;
-          justify-content: center;
-          gap: 16px;
-          color: var(--text-4);
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          margin-bottom: 32px;
-        }
-        .reader-header-actions {
-          display: flex;
-          justify-content: center;
-          gap: 16px;
-        }
-        .reader-action-btn {
-          background: var(--accent);
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: var(--radius-full);
-          font-weight: 600;
-          cursor: pointer;
-          transition: background var(--duration-fast);
-        }
-        .reader-action-btn:hover {
-          background: var(--accent-hover);
-        }
-        .reader-action-btn.secondary {
-          background: var(--surface-muted);
-          color: var(--text-1);
-          border: 1px solid var(--border);
-        }
-        .bismillah-block {
-          font-family: var(--font-arabic);
-          font-size: 2.5rem;
-          text-align: center;
-          color: var(--arabic-text);
-          margin-bottom: 48px;
-        }
-        .verse-card {
-          padding: 32px 0;
-          border-bottom: 1px solid var(--border-subtle);
-          transition: background-color var(--duration-slow), border-color var(--duration-slow);
-        }
-        .verse-card:last-child {
-          border-bottom: none;
-        }
-        .verse-top-controls-web {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-        }
-        .verse-badge {
-          background: var(--surface-muted);
-          color: var(--text-2);
-          padding: 4px 12px;
-          border-radius: var(--radius-full);
-          font-weight: 600;
-          font-size: 0.85rem;
-        }
-        .verse-arabic {
-          margin-bottom: 32px;
-        }
-        .verse-translation {
-          margin-bottom: 24px;
-        }
-        .translation-label {
-          display: block;
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: var(--accent);
-          margin-bottom: 8px;
-          font-weight: 700;
-        }
-        .verse-transliteration p {
-          font-style: italic;
-          color: var(--text-3);
-        }
-        .reader-nav {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 64px;
-          padding-top: 32px;
-          border-top: 1px solid var(--border);
-        }
-        .reader-nav-btn {
-          color: var(--text-2);
-          font-weight: 500;
-          transition: color var(--duration-fast);
-        }
-        .reader-nav-btn:hover {
-          color: var(--accent);
-        }
-      `}</style>
     </div>
   );
 }

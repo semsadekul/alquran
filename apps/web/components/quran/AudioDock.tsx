@@ -3,6 +3,9 @@
 import { formatAudioTime, RECITERS } from './audio-utils';
 import type { ReaderSurah } from './types';
 import type { ReaderPlaybackApi } from './useAudioPlayback';
+import { Play, Pause, Square, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { IconButton } from '@/components/ui/IconButton';
+import { cn } from '@/lib/cn';
 
 export function AudioDock({
   playback,
@@ -14,104 +17,123 @@ export function AudioDock({
   const { state, currentAyah } = playback;
   if (!currentAyah) return null;
 
-  const progress = state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
+  const progress =
+    state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
   const title = currentSurah?.englishName ?? `Surah ${currentAyah.surah}`;
   const verseRef = `${currentAyah.surah}:${currentAyah.ayah}`;
 
   return (
-    <div className="audio-player-bar-web active" role="region" aria-label="Audio player">
-      {/* Now Playing Info */}
-      <div className="audio-now-playing-web">
-        <div className="audio-avatar-web" aria-hidden="true">🎧</div>
-        <div className="audio-meta-web">
-          <span className="audio-kicker-web">Now Playing</span>
-          <h5 title={title}>{title}</h5>
-          <p>Verse {verseRef}</p>
+    <div
+      className={cn(
+        'fixed left-2 right-2 md:left-auto md:right-4 z-40',
+        'bottom-[calc(64px+env(safe-area-inset-bottom))] md:bottom-4',
+        'max-w-3xl mx-auto',
+        'bg-[var(--glass)] backdrop-blur-xl border border-[var(--glass-border)]',
+        'rounded-2xl shadow-[var(--shadow-elevated)]',
+        'p-3 md:p-4',
+      )}
+      role="region"
+      aria-label="Audio player"
+    >
+      {/* Top: Now playing + controls */}
+      <div className="flex items-center gap-3 mb-2">
+        {/* Avatar */}
+        <div className="w-10 h-10 rounded-xl bg-accent-subtle flex items-center justify-center shrink-0">
+          <Volume2 size={18} className="text-accent" />
         </div>
-      </div>
 
-      {/* Controls + Progress */}
-      <div className="audio-center-stack-web">
-        <div className="audio-buttons-web">
-          <button
-            className="audio-btn-web"
+        {/* Meta */}
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-wider text-ink-4 font-medium">
+            Now Playing
+          </p>
+          <h5 className="text-sm font-semibold text-ink truncate">{title}</h5>
+          <p className="text-xs text-ink-3">Verse {verseRef}</p>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center gap-1">
+          <IconButton
+            ariaLabel="Previous verse"
             onClick={playback.playPrev}
             disabled={state.currentIndex <= 0}
-            aria-label="Previous verse"
-            title="Previous verse"
           >
-            ◀◀
-          </button>
-          <button
-            className="audio-btn-web play-pause-btn-web"
+            <SkipBack size={16} />
+          </IconButton>
+          <IconButton
+            ariaLabel={state.isPlaying ? 'Pause' : 'Play'}
             onClick={playback.togglePlayPause}
-            aria-label={state.isPlaying ? 'Pause' : 'Play'}
-            title={state.isPlaying ? 'Pause' : 'Play'}
+            className="bg-accent text-white hover:bg-accent-hover"
           >
-            {state.isPlaying ? '❚❚' : '▶'}
-          </button>
-          <button
-            className="audio-btn-web"
-            onClick={playback.stop}
-            aria-label="Stop playback"
-            title="Stop"
-          >
-            ■
-          </button>
-          <button
-            className="audio-btn-web"
+            {state.isPlaying ? <Pause size={18} /> : <Play size={18} />}
+          </IconButton>
+          <IconButton ariaLabel="Stop" onClick={playback.stop}>
+            <Square size={14} />
+          </IconButton>
+          <IconButton
+            ariaLabel="Next verse"
             onClick={playback.playNext}
             disabled={state.currentIndex >= state.playlist.length - 1}
-            aria-label="Next verse"
-            title="Next verse"
           >
-            ▶▶
-          </button>
-        </div>
-
-        <div className="audio-progress-container-web">
-          <span className="audio-time-web">{formatAudioTime(state.currentTime)}</span>
-          <div
-            className="audio-progress-bar-web"
-            role="slider"
-            aria-label="Playback position"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(progress)}
-            tabIndex={0}
-            onClick={(event) => {
-              const rect = event.currentTarget.getBoundingClientRect();
-              const percentage = (event.clientX - rect.left) / rect.width;
-              playback.seek(percentage);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'ArrowRight') playback.seek((state.currentTime + 5) / state.duration);
-              if (event.key === 'ArrowLeft') playback.seek((state.currentTime - 5) / state.duration);
-            }}
-          >
-            <div className="audio-progress-fill-web" style={{ width: `${progress}%` }} />
-          </div>
-          <span className="audio-time-web">{formatAudioTime(state.duration)}</span>
+            <SkipForward size={16} />
+          </IconButton>
         </div>
       </div>
 
-      {/* Settings */}
-      <div className="audio-settings-web">
-        <select 
-          value={state.reciterId} 
-          onChange={e => playback.setReciter(e.target.value)}
-          className="audio-select-web"
+      {/* Progress bar */}
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] text-ink-4 tabular-nums w-10 text-right">
+          {formatAudioTime(state.currentTime)}
+        </span>
+        <div
+          className="flex-1 h-1.5 bg-[var(--border)] rounded-full overflow-hidden cursor-pointer"
+          role="slider"
+          aria-label="Playback position"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress)}
+          tabIndex={0}
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            playback.seek(pct);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowRight')
+              playback.seek((state.currentTime + 5) / state.duration);
+            if (e.key === 'ArrowLeft')
+              playback.seek((state.currentTime - 5) / state.duration);
+          }}
+        >
+          <div
+            className="h-full bg-gradient-to-r from-majestic-gold-dark to-majestic-gold rounded-full transition-all duration-100"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <span className="text-[10px] text-ink-4 tabular-nums w-10">
+          {formatAudioTime(state.duration)}
+        </span>
+      </div>
+
+      {/* Bottom: reciter + speed + volume */}
+      <div className="flex items-center gap-2 mt-2 flex-wrap">
+        <select
+          value={state.reciterId}
+          onChange={(e) => playback.setReciter(e.target.value)}
+          className="text-xs bg-[var(--surface-muted)] text-ink-2 border border-line rounded-lg px-2 py-1 min-h-[32px] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
           aria-label="Reciter"
         >
-          {RECITERS.map(r => (
-            <option key={r.id} value={r.id}>{r.name}</option>
+          {RECITERS.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
           ))}
         </select>
-        
+
         <select
           value={state.playbackRate}
-          onChange={e => playback.setPlaybackRate(Number(e.target.value))}
-          className="audio-select-web"
+          onChange={(e) => playback.setPlaybackRate(Number(e.target.value))}
+          className="text-xs bg-[var(--surface-muted)] text-ink-2 border border-line rounded-lg px-2 py-1 min-h-[32px] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
           aria-label="Speed"
         >
           <option value={1}>1x</option>
@@ -119,8 +141,8 @@ export function AudioDock({
           <option value={1.5}>1.5x</option>
         </select>
 
-        <div className="audio-volume-controls-web">
-          <span className="volume-label-web">Vol</span>
+        <div className="flex items-center gap-1 ml-auto">
+          <Volume2 size={14} className="text-ink-4" />
           <input
             type="range"
             min="0"
@@ -128,7 +150,8 @@ export function AudioDock({
             step="0.05"
             value={state.volume}
             aria-label="Volume"
-            onChange={(event) => playback.setVolume(Number(event.target.value))}
+            onChange={(e) => playback.setVolume(Number(e.target.value))}
+            className="w-16 accent-majestic-gold"
           />
         </div>
       </div>

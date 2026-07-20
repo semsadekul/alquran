@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { PageShell } from '@/components/ui/PageShell';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface Note {
   id: string;
@@ -21,33 +25,44 @@ export default function NotesPage() {
   }, []);
 
   return (
-    <div className="page-container">
-      <section className="page-hero">
-        <p className="eyebrow">Library</p>
-        <h1>Notes</h1>
-        <p className="lede">Your study notes attached to verses, hadith, and book passages.</p>
-      </section>
-
+    <PageShell
+      eyebrow="Library"
+      title="Notes"
+      lede="Your study notes attached to verses, hadith, and book passages."
+    >
       {loading ? (
-        <div className="empty-state">Loading notes…</div>
-      ) : notes.length === 0 ? (
-        <div className="empty-state">
-          <p>No notes yet. Add notes while reading to see them here.</p>
-          <Link className="reader-nav-btn" href="/quran/surahs">Browse Surahs</Link>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
         </div>
+      ) : notes.length === 0 ? (
+        <EmptyState
+          title="No notes yet"
+          hint="Add notes while reading to see them here."
+          action={
+            <Button href="/quran/surahs" variant="gold">
+              Browse Surahs
+            </Button>
+          }
+        />
       ) : (
-        <div className="notes-list">
+        <div className="space-y-3">
           {notes.map(note => (
-            <div className="note-card" key={note.id}>
-              <div className="note-header">
-                <span className="note-source">{note.source} — {note.sourceId}</span>
-                <span className="note-date">{new Date(note.updatedAt).toLocaleDateString()}</span>
+            <Card key={note.id} className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-accent">
+                  {note.source} &mdash; {note.sourceId}
+                </span>
+                <span className="text-xs text-ink-4">
+                  {new Date(note.updatedAt).toLocaleDateString()}
+                </span>
               </div>
-              <p className="note-content">{note.content}</p>
-            </div>
+              <p className="text-sm text-ink-2 leading-relaxed">{note.content}</p>
+            </Card>
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

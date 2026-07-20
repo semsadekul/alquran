@@ -1,105 +1,106 @@
-// -- Brand Colors --
+// -- Brand Colors -- Updated Premium Majestic Palette
 export const brand = {
   moss: {
-    900: '#0E3D2E',
-    800: '#145438',
-    700: '#1D5C4A',
-    600: '#2B6E59',
-    500: '#3B8369',     // Primary action color
-    400: '#5AA380',
-    300: '#82C4A0',
-    200: '#B8DFC8',
-    100: '#E2F3EA',
-    50:  '#F0F9F4',
+    900: '#072b1b',
+    850: '#0a3622',     // Primary dark green
+    800: '#0f4a30',
+    700: '#145338',     // Mid green
+    600: '#1a5e3f',
+    500: '#2b7a52',     // Action green
+    400: '#4a9a6e',
+    300: '#7abf96',
+    200: '#b8dfc8',
+    100: '#e2f3ea',
+    50:  '#f0f9f4',
   },
   gold: {
-    700: '#8B6914',
-    600: '#B8891F',
-    500: '#C89A2B',     // Warm accent (sparse use)
-    400: '#D8B35D',
-    300: '#E8CC85',
-    200: '#F2E4B8',
-    100: '#FAF3E0',
+    700: '#8b6914',
+    600: '#a8843e',     // Dark gold
+    500: '#c5a059',     // Primary gold accent
+    400: '#d4b06a',
+    300: '#e2c275',     // Light gold
+    200: '#f2e4b8',
+    100: '#faf3e0',
   },
   ink: {
-    950: '#060D10',
-    900: '#0B1114',     // Deepest background
-    850: '#0F171B',
-    800: '#121A1F',     // Surface
-    750: '#162127',     // Surface muted
-    700: '#1A262D',     // Surface elevated
-    600: '#26343D',     // Border
-    500: '#3A4D58',
-    400: '#5A707D',
+    950: '#060d10',
+    900: '#0b1114',
+    850: '#0f171b',
+    800: '#121a1f',
+    750: '#162127',
+    700: '#1a262d',
+    600: '#26343d',
+    500: '#3a4d58',
+    400: '#5a707d',
   },
   stone: {
-    50:  '#F7F8F6',     // Light mode background
-    100: '#F1F2EE',
-    200: '#E2E7E3',     // Light mode border
-    300: '#CED5CF',
-    400: '#A8B2AB',
+    50:  '#f8f6f0',     // Warm off-white cream
+    100: '#f1ebd9',
+    200: '#e2e7e3',
+    300: '#ced5cf',
+    400: '#a8b2ab',
   },
 } as const;
 
-// -- Semantic Theme Tokens --
+// -- Semantic Theme Tokens -- Updated with Premium Majestic palette
 export const colors = {
   dark: {
-    background:       '#0B1114',
-    backgroundSubtle: '#0F171B',
-    surface:          '#121A1F',
-    surfaceMuted:     '#162127',
-    surfaceElevated:  '#1A262D',
-    surfaceHover:     'rgba(255, 255, 255, 0.03)',
-    border:           '#26343D',
-    borderSubtle:     'rgba(255, 255, 255, 0.06)',
-    borderFocus:      '#3B8369',
-    textPrimary:      '#F5F7F8',
-    textSecondary:    '#CBD4D9',
-    textMuted:        '#8D9AA2',
-    textFaint:        '#5A707D',
-    accent:           '#3B8369',
-    accentHover:      '#5AA380',
-    accentSubtle:     'rgba(59, 131, 105, 0.16)',
-    accentWarm:       '#D8B35D',
-    accentWarmSubtle: 'rgba(216, 179, 93, 0.12)',
-    success:          '#1F8A5B',
-    warning:          '#C58A1C',
-    danger:           '#C64F4F',
-    info:             '#2F7CC2',
-    overlay:          'rgba(6, 13, 16, 0.7)',
-    glass:            'rgba(11, 17, 20, 0.92)',
-    arabicText:       '#EDF0F2',
-    activeVerse:      'rgba(216, 179, 93, 0.06)',
-    activeBorder:     'rgba(216, 179, 93, 0.28)',
+    background:       '#072b1b',
+    backgroundSubtle: '#0a3622',
+    surface:          '#0f4a30',
+    surfaceMuted:     '#145338',
+    surfaceElevated:  '#1a5e3f',
+    surfaceHover:     'rgba(255, 255, 255, 0.05)',
+    border:           '#145338',
+    borderSubtle:     'rgba(255, 255, 255, 0.08)',
+    borderFocus:      '#e2c275',
+    textPrimary:      '#f8f6f0',
+    textSecondary:    '#e2e8f0',
+    textMuted:        '#cbd5e1',
+    textFaint:        '#94a3b8',
+    accent:           '#c5a059',     // Gold accent
+    accentHover:      '#e2c275',
+    accentSubtle:     'rgba(197, 160, 89, 0.16)',
+    accentWarm:       '#e2c275',
+    accentWarmSubtle: 'rgba(226, 194, 117, 0.12)',
+    success:          '#1f8a5b',
+    warning:          '#c58a1c',
+    danger:           '#c64f4f',
+    info:             '#2f7cc2',
+    overlay:          'rgba(0, 0, 0, 0.7)',
+    glass:            'rgba(7, 43, 27, 0.92)',
+    arabicText:       '#f8f6f0',
+    activeVerse:      'rgba(197, 160, 89, 0.1)',
+    activeBorder:     'rgba(197, 160, 89, 0.4)',
   },
   light: {
-    background:       '#F7F8F6',
-    backgroundSubtle: '#F1F2EE',
-    surface:          '#FFFFFF',
-    surfaceMuted:     '#F1F3F0',
-    surfaceElevated:  '#FFFFFF',
-    surfaceHover:     'rgba(0, 0, 0, 0.02)',
-    border:           '#E2E7E3',
+    background:       '#f8f6f0',     // Warm cream
+    backgroundSubtle: '#f1ebd9',
+    surface:          '#ffffff',
+    surfaceMuted:     '#f8f6f0',
+    surfaceElevated:  '#ffffff',
+    surfaceHover:     'rgba(0, 0, 0, 0.03)',
+    border:           '#e2e7e3',
     borderSubtle:     'rgba(0, 0, 0, 0.06)',
-    borderFocus:      '#2B6E59',
-    textPrimary:      '#11181C',
-    textSecondary:    '#42515A',
-    textMuted:        '#6A7780',
-    textFaint:        '#95A1A8',
-    accent:           '#2B6E59',
-    accentHover:      '#1D5C4A',
-    accentSubtle:     'rgba(43, 110, 89, 0.1)',
-    accentWarm:       '#B8891F',
-    accentWarmSubtle: 'rgba(184, 137, 31, 0.08)',
-    success:          '#1F8A5B',
-    warning:          '#C58A1C',
-    danger:           '#C64F4F',
-    info:             '#2F7CC2',
+    borderFocus:      '#0a3622',
+    textPrimary:      '#0a3622',     // Deep green text
+    textSecondary:    '#2d3748',
+    textMuted:        '#4a5a52',
+    textFaint:        '#718096',
+    accent:           '#0a3622',     // Deep green accent
+    accentHover:      '#145338',
+    accentSubtle:     'rgba(10, 54, 34, 0.1)',
+    accentWarm:       '#c5a059',     // Gold accent
+    accentWarmSubtle: 'rgba(197, 160, 89, 0.08)',
+    success:          '#1f8a5b',
+    warning:          '#c58a1c',
+    danger:           '#c64f4f',
+    info:             '#2f7cc2',
     overlay:          'rgba(0, 0, 0, 0.4)',
-    glass:            'rgba(247, 248, 246, 0.92)',
-    arabicText:       '#11181C',
-    activeVerse:      'rgba(184, 137, 31, 0.06)',
-    activeBorder:     'rgba(184, 137, 31, 0.2)',
+    glass:            'rgba(248, 246, 240, 0.92)',
+    arabicText:       '#0a3622',
+    activeVerse:      'rgba(197, 160, 89, 0.06)',
+    activeBorder:     'rgba(197, 160, 89, 0.2)',
   },
 } as const;
 
@@ -139,7 +140,7 @@ export const shadows = {
   md:       '0 4px 12px rgba(0, 0, 0, 0.08)',
   lg:       '0 12px 32px rgba(0, 0, 0, 0.12)',
   xl:       '0 20px 60px rgba(0, 0, 0, 0.18)',
-  glow:     '0 0 40px rgba(59, 131, 105, 0.12)',
+  glow:     '0 0 40px rgba(197, 160, 89, 0.12)',
   inner:    'inset 0 2px 4px rgba(0, 0, 0, 0.06)',
   audioBar: '0 -8px 32px rgba(0, 0, 0, 0.24)',
 } as const;
@@ -148,7 +149,7 @@ export const shadows = {
 export const typography = {
   fonts: {
     sans:      "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    arabic:    "'Noto Naskh Arabic', 'Traditional Arabic', serif",
+    arabic:    "'Noto Naskh Arabic', 'KFGQPC Uthmanic Script', 'Traditional Arabic', serif",
     bengali:   "'Noto Serif Bengali', 'SolaimanLipi', 'Kalpurush', serif",
     bengaliUI: "'Hind Siliguri', 'Noto Sans Bengali', sans-serif",
     mono:      "'JetBrains Mono', 'Fira Code', monospace",

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { getSurahs, getSurahByNumber, getVersesBySurah } from '@/lib/data/quran';
 import { HifzClient } from '@/components/quran/HifzClient';
+import { PageShell } from '@/components/ui/PageShell';
+import { Button } from '@/components/ui/Button';
 
 export function generateStaticParams() {
   return getSurahs().map(s => ({ surah: String(s.number) }));
@@ -29,16 +30,15 @@ export default async function HifzSurahPage({ params }: { params: Promise<{ sura
   const verses = getVersesBySurah(num);
 
   return (
-    <div className="shell">
-      <Link className="back-link" href="/quran">← Quran</Link>
-      <section className="hero">
-        <p className="eyebrow">Hifz</p>
-        <h1>হিফয (Memorization)</h1>
-        <p className="lede">
-          Loop a selected ayah range with repeat counts, delays, and hide/reveal study layers.
-        </p>
-      </section>
+    <PageShell
+      eyebrow="Hifz"
+      title="হিফয (Memorization)"
+      lede="Loop a selected ayah range with repeat counts, delays, and hide/reveal study layers."
+    >
+      <Button href="/quran" variant="ghost" className="mb-6">
+        &larr; Quran
+      </Button>
       <HifzClient surahs={surahs} initialSurahNumber={num} initialVerses={verses} />
-    </div>
+    </PageShell>
   );
 }

@@ -1,0 +1,246 @@
+export type Locale = 'en' | 'bn';
+
+const dictionaries: Record<Locale, Record<string, string>> = {
+  bn: {
+    // Nav
+    'nav.home': 'হোম',
+    'nav.quran': 'কুরআন',
+    'nav.hifz': 'হিফজ',
+    'nav.duas': 'দু\'আ',
+    'nav.library': 'লাইব্রেরি',
+    'nav.offline': 'অফলাইন',
+    'nav.settings': 'সেটিংস',
+    'nav.search': 'অনুসন্ধান',
+    'nav.hadith': 'হাদিস',
+    'nav.books': 'বই',
+    'nav.ai': 'এআই',
+    'nav.teacher': 'শিক্ষক',
+
+    // Common actions
+    'action.play': 'চালান',
+    'action.pause': 'বিরতি',
+    'action.stop': 'থামুন',
+    'action.next': 'পরবর্তী',
+    'action.prev': 'পূর্ববর্তী',
+    'action.bookmark': 'বুকমার্ক',
+    'action.copy': 'কপি',
+    'action.share': 'শেয়ার',
+    'action.download': 'ডাউনলোড',
+    'action.delete': 'মুছুন',
+    'action.cancel': 'বাতিল',
+    'action.save': 'সংরক্ষণ',
+    'action.close': 'বন্ধ',
+    'action.back': 'ফিরুন',
+    'action.retry': 'আবার চেষ্টা করুন',
+    'action.resume': 'পুনরায় শুরু',
+    'action.verify': 'যাচাই',
+
+    // Home
+    'home.title': 'আল-কুরআন',
+    'home.subtitle': 'পবিত্র কুরআন পড়ুন এবং মুখস্থ করুন',
+    'home.continue_reading': 'পড়া চালিয়ে যান',
+    'home.hifz_track': 'হিফজ ট্র্যাক',
+    'home.daily_goal': 'দৈনিক লক্ষ্য',
+    'home.daily_revise': 'দৈনিক পুনরালোচনা',
+    'home.verse_of_day': 'আজকের আয়াত',
+
+    // Quran
+    'quran.surahs': 'সূরা',
+    'quran.ayah': 'আয়াত',
+    'quran.juz': 'পারা',
+    'quran.page': 'পৃষ্ঠা',
+    'quran.revelation_makki': 'মক্কী',
+    'quran.revelation_madani': 'মাদানী',
+    'quran.ayahs': 'আয়াতসমূহ',
+    'quran.play_surah': 'সূরা চালান',
+    'quran.hifz_mode': 'হিফজ মোড',
+    'quran.tafsir': 'তাফসীর',
+    'quran.compare': 'তুলনা',
+    'quran.transliteration': 'উচ্চারণ',
+
+    // Offline
+    'offline.title': 'অফলাইন অডিও',
+    'offline.download_all': 'সব ডাউনলোড',
+    'offline.pause_all': 'সব বিরতি',
+    'offline.resume_all': 'সব পুনরায় শুরু',
+    'offline.downloaded': 'ডাউনলোড হয়েছে',
+    'offline.not_downloaded': 'ডাউনলোড হয়নি',
+    'offline.available_on_android': 'অডিও ডাউনলোড অ্যান্ড্রয়েড অ্যাপে উপলব্ধ',
+    'offline.wifi_only': 'শুধু ওয়াই-ফাই',
+    'offline.storage': 'স্টোরেজ',
+    'offline.pause': 'বিরতি',
+    'offline.delete': 'মুছুন',
+    'offline.verify': 'যাচাই',
+    'offline.error': 'ত্রুটি',
+    'offline.queued': 'সারিবদ্ধ',
+
+    // Library
+    'library.title': 'লাইব্রেরি',
+    'library.bookmarks': 'বুকমার্ক',
+    'library.notes': 'নোট',
+    'library.highlights': 'হাইলাইট',
+    'library.collections': 'সংগ্রহ',
+
+    // Settings
+    'settings.title': 'সেটিংস',
+    'settings.theme': 'থিম',
+    'settings.language': 'ভাষা',
+    'settings.font_size': 'ফন্ট সাইজ',
+    'settings.arabic_size': 'আরবি ফন্ট সাইজ',
+    'settings.translation_size': 'অনুবাদ ফন্ট সাইজ',
+    'settings.light': 'আলো',
+    'settings.dark': 'অন্ধকার',
+    'settings.system': 'সিস্টেম',
+    'settings.bangla': 'বাংলা',
+    'settings.english': 'English',
+
+    // Search
+    'search.title': 'অনুসন্ধান',
+    'search.placeholder': 'সূরা, আয়াত বা বিষয় অনুসন্ধান করুন...',
+    'search.no_results': 'কোনো ফলাফল পাওয়া যায়নি',
+
+    // Duas
+    'duas.title': 'দু\'আ',
+    'duas.subtitle': 'কুরআনের রাব্বানী দু\'আসমূহ',
+    'duas.search_placeholder': 'দু\'আ অনুসন্ধান করুন...',
+
+    // Common
+    'common.loading': 'লোড হচ্ছে...',
+    'common.error': 'ত্রুটি',
+    'common.no_data': 'কোনো তথ্য পাওয়া যায়নি',
+    'common.coming_soon': 'শীঘ্রই আসছে',
+    'common.surah': 'সূরা',
+    'common.verse': 'আয়াত',
+    'common.of': 'এর',
+    'common.verses': 'আয়াত',
+    'common.reciter': 'ক্বারী',
+    'common.pages': 'পৃষ্ঠা',
+    'common.bytes': 'বাইট',
+    'common.kb': 'কেবি',
+    'common.mb': 'এমবি',
+    'common.gb': 'জিবি',
+  },
+  en: {
+    // Nav
+    'nav.home': 'Home',
+    'nav.quran': 'Quran',
+    'nav.hifz': 'Hifz',
+    'nav.duas': 'Duas',
+    'nav.library': 'Library',
+    'nav.offline': 'Offline',
+    'nav.settings': 'Settings',
+    'nav.search': 'Search',
+    'nav.hadith': 'Hadith',
+    'nav.books': 'Books',
+    'nav.ai': 'AI',
+    'nav.teacher': 'Teacher',
+
+    // Common actions
+    'action.play': 'Play',
+    'action.pause': 'Pause',
+    'action.stop': 'Stop',
+    'action.next': 'Next',
+    'action.prev': 'Previous',
+    'action.bookmark': 'Bookmark',
+    'action.copy': 'Copy',
+    'action.share': 'Share',
+    'action.download': 'Download',
+    'action.delete': 'Delete',
+    'action.cancel': 'Cancel',
+    'action.save': 'Save',
+    'action.close': 'Close',
+    'action.back': 'Back',
+    'action.retry': 'Retry',
+    'action.resume': 'Resume',
+    'action.verify': 'Verify',
+
+    // Home
+    'home.title': 'Al-Quran',
+    'home.subtitle': 'Read and memorize the Holy Quran',
+    'home.continue_reading': 'Continue Reading',
+    'home.hifz_track': 'Hifz Track',
+    'home.daily_goal': 'Daily Goal',
+    'home.daily_revise': 'Daily Revise',
+    'home.verse_of_day': 'Verse of the Day',
+
+    // Quran
+    'quran.surahs': 'Surahs',
+    'quran.ayah': 'Ayah',
+    'quran.juz': 'Juz',
+    'quran.page': 'Page',
+    'quran.revelation_makki': 'Makki',
+    'quran.revelation_madani': 'Madani',
+    'quran.ayahs': 'Ayahs',
+    'quran.play_surah': 'Play Surah',
+    'quran.hifz_mode': 'Hifz Mode',
+    'quran.tafsir': 'Tafsir',
+    'quran.compare': 'Compare',
+    'quran.transliteration': 'Transliteration',
+
+    // Offline
+    'offline.title': 'Offline Audio',
+    'offline.download_all': 'Download All',
+    'offline.pause_all': 'Pause All',
+    'offline.resume_all': 'Resume All',
+    'offline.downloaded': 'Downloaded',
+    'offline.not_downloaded': 'Not Downloaded',
+    'offline.available_on_android': 'Audio downloads available in Android app',
+    'offline.wifi_only': 'Wi-Fi Only',
+    'offline.storage': 'Storage',
+    'offline.pause': 'Pause',
+    'offline.delete': 'Delete',
+    'offline.verify': 'Verify',
+    'offline.error': 'Error',
+    'offline.queued': 'Queued',
+
+    // Library
+    'library.title': 'Library',
+    'library.bookmarks': 'Bookmarks',
+    'library.notes': 'Notes',
+    'library.highlights': 'Highlights',
+    'library.collections': 'Collections',
+
+    // Settings
+    'settings.title': 'Settings',
+    'settings.theme': 'Theme',
+    'settings.language': 'Language',
+    'settings.font_size': 'Font Size',
+    'settings.arabic_size': 'Arabic Font Size',
+    'settings.translation_size': 'Translation Font Size',
+    'settings.light': 'Light',
+    'settings.dark': 'Dark',
+    'settings.system': 'System',
+    'settings.bangla': 'বাংলা',
+    'settings.english': 'English',
+
+    // Search
+    'search.title': 'Search',
+    'search.placeholder': 'Search surahs, ayahs, or topics...',
+    'search.no_results': 'No results found',
+
+    // Duas
+    'duas.title': 'Duas',
+    'duas.subtitle': 'Rabbana Supplications from the Quran',
+    'duas.search_placeholder': 'Search duas...',
+
+    // Common
+    'common.loading': 'Loading...',
+    'common.error': 'Error',
+    'common.no_data': 'No data found',
+    'common.coming_soon': 'Coming Soon',
+    'common.surah': 'Surah',
+    'common.verse': 'Verse',
+    'common.of': 'of',
+    'common.verses': 'verses',
+    'common.reciter': 'Reciter',
+    'common.pages': 'Pages',
+    'common.bytes': 'Bytes',
+    'common.kb': 'KB',
+    'common.mb': 'MB',
+    'common.gb': 'GB',
+  },
+};
+
+export function t(locale: Locale, key: string): string {
+  return dictionaries[locale]?.[key] ?? dictionaries.en[key] ?? key;
+}

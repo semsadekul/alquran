@@ -1,10 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
 
+/* ========================
+   TAILWIND THEME TOKENS
+   ======================== */
+@theme inline {
+  --font-sans: var(--font-sans-face), system-ui, -apple-system, sans-serif;
+  --font-arabic: var(--font-arabic-face), 'KFGQPC Uthmanic Script', serif;
+  --font-bengali: var(--font-bengali-face), serif;
+  --font-bengali-ui: var(--font-bengali-ui-face), 'Noto Sans Bengali', sans-serif;
+
+  /* Semantic surface/ink colors mapped to CSS vars */
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-ink: var(--text-1);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+  --color-ink-4: var(--text-4);
+  --color-accent: var(--accent);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-gold: var(--warm);
+  --color-gold-subtle: var(--warm-subtle);
+  --color-line: var(--border);
+  --color-line-subtle: var(--border-subtle);
+
+  /* Premium Majestic Theme Colors */
+  --color-majestic-dark: #0a3622;
+  --color-majestic-darker: #072b1b;
+  --color-majestic-mid: #0f4a30;
+  --color-majestic-light: #145338;
+  --color-majestic-gold: #c5a059;
+  --color-majestic-gold-light: #e2c275;
+  --color-majestic-gold-dark: #a8843e;
+  --color-majestic-bg: #f8f6f0;
+  --color-majestic-text: #0a3622;
+  --color-majestic-text-light: #4a5a52;
+}
+
+/* ========================
+   DESIGN TOKENS
+   ======================== */
 :root {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-arabic: 'Noto Naskh Arabic', serif;
-  --font-bengali: 'Noto Serif Bengali', serif;
-  --font-bengali-ui: 'Hind Siliguri', sans-serif;
   --duration-fast: 120ms;
   --duration-normal: 200ms;
   --duration-slow: 350ms;
@@ -20,75 +56,118 @@
   --radius-full: 999px;
 }
 
-/* Dark Theme (default) */
-[data-theme="dark"], :root {
-  color-scheme: dark;
-  --bg: #0B1114;
-  --bg-subtle: #0F171B;
-  --surface: #121A1F;
-  --surface-muted: #162127;
-  --surface-elevated: #1A262D;
-  --surface-hover: rgba(255, 255, 255, 0.03);
-  --border: #26343D;
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-focus: #3B8369;
-  --text-1: #F5F7F8;
-  --text-2: #CBD4D9;
-  --text-3: #8D9AA2;
-  --text-4: #5A707D;
-  --accent: #3B8369;
-  --accent-hover: #5AA380;
-  --accent-subtle: rgba(59, 131, 105, 0.16);
-  --warm: #D8B35D;
-  --warm-subtle: rgba(216, 179, 93, 0.12);
-  --glass: rgba(11, 17, 20, 0.92);
-  --overlay: rgba(6, 13, 16, 0.7);
-  --arabic-text: #EDF0F2;
-  --active-verse-bg: rgba(216, 179, 93, 0.06);
-  --active-verse-border: rgba(216, 179, 93, 0.28);
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 40px rgba(59, 131, 105, 0.12);
-}
-
-/* Light Theme */
+/* ========================
+   LIGHT THEME (default)
+   ======================== */
+:root,
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #F7F8F6;
-  --bg-subtle: #F1F2EE;
-  --surface: #FFFFFF;
-  --surface-muted: #F1F3F0;
-  --surface-elevated: #FFFFFF;
-  --surface-hover: rgba(0, 0, 0, 0.02);
-  --border: #E2E7E3;
+  --bg: #f8f6f0;
+  --bg-subtle: #f1ebd9;
+  --surface: #ffffff;
+  --surface-muted: #f8f6f0;
+  --surface-elevated: #ffffff;
+  --surface-hover: rgba(0, 0, 0, 0.03);
+  --border: #e2e8f0;
   --border-subtle: rgba(0, 0, 0, 0.06);
-  --border-focus: #2B6E59;
-  --text-1: #11181C;
-  --text-2: #42515A;
-  --text-3: #6A7780;
-  --text-4: #95A1A8;
-  --accent: #2B6E59;
-  --accent-hover: #1D5C4A;
-  --accent-subtle: rgba(43, 110, 89, 0.1);
-  --warm: #B8891F;
-  --warm-subtle: rgba(184, 137, 31, 0.08);
-  --glass: rgba(247, 248, 246, 0.92);
+  --border-focus: #0a3622;
+  --text-1: #0a3622;
+  --text-2: #2d3748;
+  --text-3: #4a5a52;
+  --text-4: #718096;
+  --accent: #0a3622;
+  --accent-hover: #145338;
+  --accent-subtle: rgba(10, 54, 34, 0.1);
+  --warm: #c5a059;
+  --warm-subtle: rgba(197, 160, 89, 0.08);
+  --glass: rgba(248, 246, 240, 0.92);
+  --glass-border: rgba(226, 232, 240, 0.6);
   --overlay: rgba(0, 0, 0, 0.4);
-  --arabic-text: #11181C;
-  --active-verse-bg: rgba(184, 137, 31, 0.06);
-  --active-verse-border: rgba(184, 137, 31, 0.2);
+  --arabic-text: #0a3622;
+  --active-verse-bg: rgba(197, 160, 89, 0.06);
+  --active-verse-border: rgba(197, 160, 89, 0.2);
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.05);
   --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 0 32px rgba(43, 110, 89, 0.08);
+  --shadow-glow: 0 0 32px rgba(10, 54, 34, 0.06);
 }
 
-/* Global Reset & Base */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ========================
+   DARK THEME (opt-in)
+   ======================== */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #072b1b;
+  --bg-subtle: #0a3622;
+  --surface: #0f4a30;
+  --surface-muted: #145338;
+  --surface-elevated: #1a5e3f;
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --border: #145338;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: #e2c275;
+  --text-1: #f8f6f0;
+  --text-2: #e2e8f0;
+  --text-3: #cbd5e1;
+  --text-4: #94a3b8;
+  --accent: #c5a059;
+  --accent-hover: #e2c275;
+  --accent-subtle: rgba(197, 160, 89, 0.16);
+  --warm: #c5a059;
+  --warm-subtle: rgba(197, 160, 89, 0.12);
+  --glass: rgba(7, 43, 27, 0.92);
+  --glass-border: rgba(20, 83, 56, 0.4);
+  --overlay: rgba(0, 0, 0, 0.7);
+  --arabic-text: #f8f6f0;
+  --active-verse-bg: rgba(197, 160, 89, 0.1);
+  --active-verse-border: rgba(197, 160, 89, 0.4);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 12px 40px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 40px rgba(197, 160, 89, 0.12);
 }
 
+/* ========================
+   ISLAMIC GEOMETRIC PATTERN
+   ======================== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 25% 25%, #0a3622 1px, transparent 1px),
+    radial-gradient(circle at 75% 25%, #0a3622 1px, transparent 1px),
+    radial-gradient(circle at 25% 75%, #0a3622 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #0a3622 1px, transparent 1px),
+    repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(10, 54, 34, 0.04) 40px, rgba(10, 54, 34, 0.04) 41px),
+    repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(10, 54, 34, 0.04) 40px, rgba(10, 54, 34, 0.04) 41px);
+  background-size:
+    120px 120px,
+    120px 120px,
+    120px 120px,
+    120px 120px,
+    80px 80px,
+    80px 80px;
+  background-position:
+    0 0, 60px 0, 0 60px, 60px 60px,
+    0 0, 0 0;
+}
+
+[data-theme="dark"] body::before {
+  opacity: 0.04;
+  background-image:
+    radial-gradient(circle at 25% 25%, #e2c275 1px, transparent 1px),
+    radial-gradient(circle at 75% 25%, #e2c275 1px, transparent 1px),
+    radial-gradient(circle at 25% 75%, #e2c275 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #e2c275 1px, transparent 1px),
+    repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(226, 194, 117, 0.04) 40px, rgba(226, 194, 117, 0.04) 41px),
+    repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(226, 194, 117, 0.04) 40px, rgba(226, 194, 117, 0.04) 41px);
+}
+
+/* ========================
+   BASE STYLES
+   ======================== */
 body {
   font-family: var(--font-sans);
   background-color: var(--bg);
@@ -109,7 +188,9 @@ ul {
   list-style: none;
 }
 
-/* Layout */
+/* ========================
+   LAYOUT
+   ======================== */
 .app-shell {
   display: flex;
   flex-direction: column;
@@ -118,54 +199,56 @@ ul {
 
 .main-content {
   flex: 1;
-  padding-bottom: 40px; /* Base padding */
+  padding-bottom: 40px;
 }
 .main-content.audio-active {
-  padding-bottom: 88px; /* Space for audio dock */
+  padding-bottom: 88px;
 }
 
-.topbar {
-  position: sticky;
+/* ========================
+   GLASSMORPHISM UTILITIES
+   ======================== */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.card-glow {
+  box-shadow: var(--shadow-card);
+  position: relative;
+}
+.card-glow::after {
+  content: '';
+  position: absolute;
   top: 0;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-subtle);
-  z-index: 40;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(197, 160, 89, 0.3), transparent);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
-.topbar-brand {
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--text-1);
-  font-family: var(--font-sans);
-}
-
-.topbar-nav {
-  display: flex;
-  gap: 24px;
-}
-
-.topbar-link {
-  color: var(--text-2);
-  font-weight: 500;
-  font-size: 0.95rem;
-  font-family: var(--font-bengali-ui);
-  transition: color var(--duration-fast) var(--ease-default);
-}
-.topbar-link:hover {
-  color: var(--text-1);
-}
-
-/* Responsive typography */
+/* ========================
+   RESPONSIVE TYPOGRAPHY
+   ======================== */
 h1 { font-size: clamp(1.6rem, 3.5vw + 0.5rem, 2.5rem); line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
 h2 { font-size: clamp(1.2rem, 2vw + 0.3rem, 1.5rem); line-height: 1.25; font-weight: 700; }
 h3 { font-size: clamp(1rem, 1.5vw + 0.2rem, 1.25rem); line-height: 1.3; font-weight: 600; }
+
+.display-title {
+  font-family: Georgia, serif;
+  letter-spacing: 0.12em;
+}
+
+.bismillah {
+  font-family: var(--font-arabic);
+  font-size: clamp(1.6rem, 3vw + 0.6rem, 2.6rem);
+  text-align: center;
+  color: var(--warm);
+  direction: rtl;
+}
 
 .verse-arabic {
   font-family: var(--font-arabic);
@@ -205,7 +288,9 @@ h3 { font-size: clamp(1rem, 1.5vw + 0.2rem, 1.25rem); line-height: 1.3; font-wei
   font-size: calc(clamp(0.9rem, 1.5vw + 0.4rem, 1.15rem) * var(--translation-size-multiplier));
 }
 
-/* Components */
+/* ========================
+   LEGACY COMPONENTS
+   ======================== */
 .shell {
   max-width: 1200px;
   margin: 0 auto;
@@ -268,7 +353,9 @@ h3 { font-size: clamp(1rem, 1.5vw + 0.2rem, 1.25rem); line-height: 1.3; font-wei
   font-size: 0.95rem;
 }
 
-/* Animations */
+/* ========================
+   ANIMATIONS
+   ======================== */
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
@@ -282,6 +369,11 @@ h3 { font-size: clamp(1rem, 1.5vw + 0.2rem, 1.25rem); line-height: 1.3; font-wei
 @keyframes versePulse {
   0%, 100% { border-left-color: var(--warm); }
   50% { border-left-color: rgba(216, 179, 93, 0.5); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -308,10 +400,12 @@ h3 { font-size: clamp(1rem, 1.5vw + 0.2rem, 1.25rem); line-height: 1.3; font-wei
   animation: versePulse 2s ease-in-out infinite;
 }
 
-/* Media Queries */
+/* ========================
+   MEDIA QUERIES
+   ======================== */
 @media (max-width: 768px) {
   .topbar-nav {
-    display: none; /* Hide on mobile to show hamburger later */
+    display: none;
   }
   .mobile-menu-btn {
     display: block !important;
@@ -325,6 +419,9 @@ h3 { font-size: clamp(1rem, 1.5vw + 0.2rem, 1.25rem); line-height: 1.3; font-wei
   }
 }
 
+/* ========================
+   MOBILE NAV
+   ======================== */
 .mobile-nav-overlay {
   position: fixed;
   inset: 0;
@@ -367,11 +464,9 @@ h3 { font-size: clamp(1rem, 1.5vw + 0.2rem, 1.25rem); line-height: 1.3; font-wei
   font-family: var(--font-bengali-ui);
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
+/* ========================
+   FOOTER
+   ======================== */
 .footer {
   text-align: center;
   padding: 24px;

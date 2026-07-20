@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "prebuild": "node scripts/build-search.js",
-    "dev": "next dev --turbopack",
+    "prebuild": "node scripts/build-search.js && node scripts/build-duas.mjs && node scripts/check-classes.mjs",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -16,13 +16,17 @@
     "@alquran/types": "workspace:*",
     "lucide-react": "^0.300.0",
     "next": "16.2.10",
-    "react": "19.0.0-rc-69d4b800-20241021",
-    "react-dom": "19.0.0-rc-69d4b800-20241021"
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.9.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.19",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.6.3"
   }
 }

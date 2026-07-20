@@ -1,8 +1,9 @@
 'use client';
 
-import { Play, Bookmark, Copy, Share2, MoreHorizontal } from 'lucide-react';
-import { useState } from 'react';
+import { Play, Bookmark, Copy, Share2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
 import { ReaderAyah } from './types';
+import { IconButton } from '@/components/ui/IconButton';
 
 interface VerseActionsProps {
   verse: ReaderAyah;
@@ -12,73 +13,49 @@ interface VerseActionsProps {
 export function VerseActions({ verse, onPlay }: VerseActionsProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    // TODO: integrate with useLocalStorage to save bookmark
-  };
+  const handleBookmark = useCallback(() => {
+    setIsBookmarked((prev) => !prev);
+    // TODO: integrate with IndexedDB bookmarks store
+  }, []);
 
-  const handleCopy = () => {
+  const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(verse.arabic + '\n\n' + verse.bangla);
-    // Optional: show a toast
-  };
+  }, [verse.arabic, verse.bangla]);
+
+  const handleShare = useCallback(async () => {
+    const text = `${verse.arabic}\n\n${verse.bangla}\n\n— Quran ${verse.surah}:${verse.ayah}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      navigator.clipboard.writeText(text);
+    }
+  }, [verse]);
 
   return (
-    <div className="verse-actions-web">
-      <button 
-        className="verse-action-btn-web" 
-        onClick={onPlay}
-        aria-label="Play verse"
-      >
-        <Play size={18} />
-        <span>Play</span>
-      </button>
-      
-      <button 
-        className={`verse-action-btn-web icon-only ${isBookmarked ? 'active' : ''}`} 
+    <div className="flex items-center gap-1">
+      <IconButton ariaLabel="Play verse" onClick={onPlay}>
+        <Play size={16} />
+      </IconButton>
+      <IconButton
+        ariaLabel={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
         onClick={handleBookmark}
-        aria-label="Bookmark"
+        active={isBookmarked}
       >
-        <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
-      </button>
-
-      <button 
-        className="verse-action-btn-web icon-only" 
-        onClick={handleCopy}
-        aria-label="Copy verse"
-      >
-        <Copy size={18} />
-      </button>
-      
-      <style jsx>{`
-        .verse-actions-web {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-        }
-        .verse-action-btn-web {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: var(--surface-muted);
-          border: 1px solid var(--border);
-          color: var(--text-2);
-          padding: 6px 12px;
-          border-radius: var(--radius-full);
-          font-size: 0.85rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all var(--duration-fast);
-        }
-        .verse-action-btn-web.icon-only {
-          padding: 6px 8px;
-        }
-        .verse-action-btn-web:hover,
-        .verse-action-btn-web.active {
-          background: var(--surface);
-          border-color: var(--accent);
-          color: var(--accent);
-        }
-      `}</style>
+        <Bookmark
+          size={16}
+          fill={isBookmarked ? 'currentColor' : 'none'}
+        />
+      </IconButton>
+      <IconButton ariaLabel="Copy verse" onClick={handleCopy}>
+        <Copy size={16} />
+      </IconButton>
+      <IconButton ariaLabel="Share verse" onClick={handleShare}>
+        <Share2 size={16} />
+      </IconButton>
     </div>
   );
 }
