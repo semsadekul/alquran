@@ -3,6 +3,8 @@
   "appName": "Al Quran",
   "webDir": "apps/web/out",
   "server": {
+    "url": "https://alquran-mu.vercel.app/",
+    "cleartext": true,
     "androidScheme": "https"
   },
   "android": {
