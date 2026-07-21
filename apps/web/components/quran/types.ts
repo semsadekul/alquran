@@ -7,6 +7,7 @@ export interface ReaderAyah {
   english: string;
   transliteration: string;
   banglaTransliteration?: string;
+  urdu?: string;
 }
 
 export interface ReaderSurah {

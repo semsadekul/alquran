@@ -6,6 +6,7 @@ import { ReaderPreferences } from '@alquran/types';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toggle } from '@/components/ui/Toggle';
 import { IconButton } from '@/components/ui/IconButton';
+import { cn } from '@/lib/cn';
 
 interface ReadingSettingsProps {
   preferences: ReaderPreferences;
@@ -67,6 +68,30 @@ export function ReadingSettings({ preferences, onChange }: ReadingSettingsProps)
             />
           </div>
 
+          {/* Line Spacing */}
+          <div>
+            <label className="block text-sm font-medium text-ink-2 mb-2">
+              Line Spacing
+            </label>
+            <div className="flex gap-2">
+              {(['compact', 'normal', 'spacious'] as const).map((spacing) => (
+                <button
+                  key={spacing}
+                  type="button"
+                  onClick={() => onChange({ lineSpacing: spacing })}
+                  className={cn(
+                    'flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors',
+                    preferences.lineSpacing === spacing
+                      ? 'bg-accent-subtle border-accent text-accent'
+                      : 'bg-[var(--surface-muted)] border-[var(--border)] text-ink-3 hover:text-ink-2',
+                  )}
+                >
+                  {spacing.charAt(0).toUpperCase() + spacing.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Visibility Toggles */}
           <div className="space-y-4">
             <p className="text-sm font-medium text-ink-2">Visibility</p>
@@ -92,6 +117,14 @@ export function ReadingSettings({ preferences, onChange }: ReadingSettingsProps)
               <Toggle
                 checked={preferences.showEnglish}
                 onChange={(checked) => onChange({ showEnglish: checked })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-ink-2">Show Urdu Translation</span>
+              <Toggle
+                checked={preferences.showUrdu}
+                onChange={(checked) => onChange({ showUrdu: checked })}
               />
             </div>
 

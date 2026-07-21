@@ -13,7 +13,7 @@
  */
 
 const DB_NAME = 'AlQuranOfflineDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbInstance: IDBDatabase | null = null;
 
@@ -50,6 +50,14 @@ export function openDB(): Promise<IDBDatabase> {
       // v2 store: audio download manifest
       if (!db.objectStoreNames.contains('audioManifest')) {
         db.createObjectStore('audioManifest', { keyPath: 'key' });
+      }
+
+      // v3 stores: notes and highlights
+      if (!db.objectStoreNames.contains('notes')) {
+        db.createObjectStore('notes', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('highlights')) {
+        db.createObjectStore('highlights', { keyPath: 'id' });
       }
     };
   });
@@ -191,4 +199,76 @@ export async function getRecentSurahs(): Promise<
     value: Array<{ number: number; englishName: string; name: string; timestamp: number }>;
   }>('settings', 'recent_surahs');
   return result?.value || [];
+}
+
+/* ─── Bookmark helpers ─── */
+
+export async function addBookmark(bookmark: LegacyBookmark): Promise<void> {
+  return writeToStore<LegacyBookmark>('bookmarks', bookmark);
+}
+
+export async function removeBookmark(surah_ayah: string): Promise<void> {
+  return deleteFromStore('bookmarks', surah_ayah);
+}
+
+export async function isBookmarked(surah_ayah: string): Promise<boolean> {
+  const bookmark = await getFromStore<LegacyBookmark>('bookmarks', surah_ayah);
+  return !!bookmark;
+}
+
+/* ─── Notes helpers ─── */
+
+export interface Note {
+  id: string;
+  surah_ayah: string;
+  surah: number;
+  ayah: number;
+  text: string;
+  color: 'yellow' | 'green' | 'blue' | 'pink';
+  timestamp: number;
+}
+
+export async function addNote(note: Note): Promise<void> {
+  return writeToStore<Note>('notes', note);
+}
+
+export async function getNotes(): Promise<Note[]> {
+  return getAllFromStore<Note>('notes');
+}
+
+export async function removeNote(id: string): Promise<void> {
+  return deleteFromStore('notes', id);
+}
+
+export async function getNotesForVerse(surah: number, ayah: number): Promise<Note[]> {
+  const notes = await getNotes();
+  return notes.filter(n => n.surah === surah && n.ayah === ayah);
+}
+
+/* ─── Highlights helpers ─── */
+
+export interface Highlight {
+  id: string;
+  surah_ayah: string;
+  surah: number;
+  ayah: number;
+  color: 'yellow' | 'green' | 'blue' | 'pink';
+  timestamp: number;
+}
+
+export async function addHighlight(highlight: Highlight): Promise<void> {
+  return writeToStore<Highlight>('highlights', highlight);
+}
+
+export async function getHighlights(): Promise<Highlight[]> {
+  return getAllFromStore<Highlight>('highlights');
+}
+
+export async function removeHighlight(id: string): Promise<void> {
+  return deleteFromStore('highlights', id);
+}
+
+export async function getHighlightsForVerse(surah: number, ayah: number): Promise<Highlight[]> {
+  const highlights = await getHighlights();
+  return highlights.filter(h => h.surah === surah && h.ayah === ayah);
 }

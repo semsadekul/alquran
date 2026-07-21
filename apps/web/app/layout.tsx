@@ -5,6 +5,8 @@ import './globals.css';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { LocaleProvider } from '@/components/providers/LocaleProvider';
 import { NativeProvider } from '@/components/providers/NativeProvider';
+import { ServiceWorkerProvider } from '@/components/providers/ServiceWorkerProvider';
+import { AnnounceProvider } from '@/components/ui/Announce';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 
@@ -58,6 +60,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <head>
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0a3622" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Al Quran" />
+
         {/* No-flash theme boot script */}
         <script
           dangerouslySetInnerHTML={{
@@ -69,33 +78,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <LocaleProvider>
             <NativeProvider>
-            <Header />
+              <ServiceWorkerProvider />
+              <AnnounceProvider>
+                <Header />
 
-            {/* Main Content */}
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 md:py-10 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-10">
-              {children}
-            </main>
+                {/* Main Content */}
+                <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 md:py-10 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-10">
+                  {children}
+                </main>
 
-            {/* Footer (Desktop only) */}
-            <footer className="hidden md:block w-full text-center py-8 text-white/60 text-sm bg-gradient-to-r from-[#0a3622] to-[#145338] border-t border-[#1a5e3f] mt-auto">
-              <div className="max-w-6xl mx-auto px-4">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-6">
-                    <Link href="/" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Home</Link>
-                    <Link href="/quran" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Quran</Link>
-                    <Link href="/quran/hifz" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Hifz</Link>
-                    <Link href="/duas" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Duas</Link>
-                    <Link href="/offline" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Offline</Link>
-                    <Link href="/settings" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Settings</Link>
+                {/* Footer (Desktop only) */}
+                <footer className="hidden md:block w-full text-center py-8 text-white/60 text-sm bg-gradient-to-r from-[#0a3622] to-[#145338] border-t border-[#1a5e3f] mt-auto">
+                  <div className="max-w-6xl mx-auto px-4">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex items-center gap-6">
+                        <Link href="/" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Home</Link>
+                        <Link href="/quran" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Quran</Link>
+                        <Link href="/quran/hifz" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Hifz</Link>
+                        <Link href="/duas" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Duas</Link>
+                        <Link href="/offline" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Offline</Link>
+                        <Link href="/settings" className="text-white/50 hover:text-[var(--color-majestic-gold)] transition-colors text-xs">Settings</Link>
+                      </div>
+                      <p className="text-white/40 text-[11px]">
+                        © {new Date().getFullYear()} Al Quran — পবিত্র কুরআন
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-white/40 text-[11px]">
-                    © {new Date().getFullYear()} Al Quran — পবিত্র কুরআন
-                  </p>
-                </div>
-              </div>
-            </footer>
+                </footer>
 
-            <BottomNav />
+                <BottomNav />
+              </AnnounceProvider>
             </NativeProvider>
           </LocaleProvider>
         </ThemeProvider>

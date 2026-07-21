@@ -34,6 +34,7 @@ export function AudioDock({
       )}
       role="region"
       aria-label="Audio player"
+      aria-live="polite"
     >
       {/* Top: Now playing + controls */}
       <div className="flex items-center gap-3 mb-2">

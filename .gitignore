@@ -8,3 +8,4 @@ android/.gradle/
 .next/
 dist/
 out/
+tsconfig.tsbuildinfo

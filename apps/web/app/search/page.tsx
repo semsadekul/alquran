@@ -23,6 +23,25 @@ type SearchMode = 'all' | 'arabic' | 'bangla' | 'english' | 'transliteration';
 
 const SEARCH_MODES: SearchMode[] = ['all', 'arabic', 'bangla', 'english', 'transliteration'];
 
+// Highlight matching text
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text;
+
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  const parts = text.split(regex);
+
+  return parts.map((part, i) =>
+    regex.test(part) ? (
+      <mark key={i} className="bg-yellow-200 dark:bg-yellow-800/50 text-inherit rounded-sm px-0.5">
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
+}
+
 export default function SearchPage() {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<SearchMode>('all');
@@ -91,6 +110,7 @@ export default function SearchPage() {
             'bg-surface border border-line text-ink placeholder:text-ink-4',
             'focus:outline-none focus:ring-2 focus:ring-[var(--border-focus)]',
           )}
+          aria-label="Search query"
         />
         <Button onClick={handleSearch} disabled={loading} loading={loading}>
           {loading ? 'Searching...' : 'Search'}
@@ -109,6 +129,8 @@ export default function SearchPage() {
                 ? 'bg-accent-subtle text-accent border border-accent/20'
                 : 'bg-[var(--surface-muted)] text-ink-3 border border-line hover:text-ink',
             )}
+            role="tab"
+            aria-selected={mode === m}
           >
             {m === 'all' ? 'All' : m.charAt(0).toUpperCase() + m.slice(1)}
           </button>
@@ -134,7 +156,7 @@ export default function SearchPage() {
       <div className="space-y-3">
         {results.map(r => (
           <Link
-            href={`/quran/surahs/${r.surah}`}
+            href={`/quran/surahs/${r.surah}#verse-${r.ayah}`}
             key={r.number}
             className="block"
           >
@@ -151,10 +173,10 @@ export default function SearchPage() {
                 {r.arabic}
               </p>
               <p className="text-sm text-ink-2 mb-1" style={{ fontFamily: 'var(--font-bengali-ui)' }}>
-                {r.bangla}
+                {highlightText(r.bangla, query)}
               </p>
               <p className="text-sm text-ink-3">
-                {r.english}
+                {highlightText(r.english, query)}
               </p>
             </Card>
           </Link>

@@ -1,23 +1,26 @@
 import { cn } from '@/lib/cn';
 import { IconButton } from './IconButton';
+import { VerseActions } from '../quran/VerseActions';
+import { SujudMarker, SUJUD_AYAHS } from '../quran/SujudMarker';
+import type { ReaderAyah } from '../quran/types';
 
 interface VerseCardProps {
   verseNumber: number;
   arabic: string;
   bangla?: string;
   english?: string;
+  urdu?: string;
   transliteration?: string;
   banglaTransliteration?: string;
   isActive?: boolean;
   showBangla?: boolean;
   showEnglish?: boolean;
+  showUrdu?: boolean;
   showTransliteration?: boolean;
   onPlay?: () => void;
-  onBookmark?: () => void;
-  onCopy?: () => void;
-  onShare?: () => void;
-  onTafsir?: () => void;
-  isBookmarked?: boolean;
+  surahName?: string;
+  surahNumber?: number;
+  verse?: ReaderAyah;
   className?: string;
 }
 
@@ -26,18 +29,18 @@ export function VerseCard({
   arabic,
   bangla,
   english,
+  urdu,
   transliteration,
   banglaTransliteration,
   isActive,
   showBangla = true,
   showEnglish = true,
+  showUrdu = false,
   showTransliteration = false,
   onPlay,
-  onBookmark,
-  onCopy,
-  onShare,
-  onTafsir,
-  isBookmarked,
+  surahName,
+  surahNumber,
+  verse,
   className,
 }: VerseCardProps) {
   return (
@@ -60,6 +63,7 @@ export function VerseCard({
               viewBox="0 0 40 40"
               className="absolute inset-0 w-full h-full"
               fill="none"
+              aria-label={`Verse ${verseNumber}`}
             >
               <polygon
                 points="20,2 26,8 34,6 32,14 38,20 32,26 34,34 26,32 20,38 14,32 6,34 8,26 2,20 8,14 6,6 14,8"
@@ -73,56 +77,24 @@ export function VerseCard({
               {verseNumber}
             </span>
           </div>
+          {/* Sajdah marker */}
+          {surahNumber && SUJUD_AYAHS.has(`${surahNumber}-${verseNumber}`) && (
+            <SujudMarker surah={surahNumber} ayah={verseNumber} />
+          )}
         </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-1">
-          {onPlay && (
+        {/* Action buttons - use VerseActions component when verse data is available */}
+        {verse && surahName && onPlay ? (
+          <VerseActions verse={verse} surahName={surahName} onPlay={onPlay} />
+        ) : (
+          onPlay && (
             <IconButton ariaLabel="Play verse" onClick={onPlay}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5,3 19,12 5,21" />
               </svg>
             </IconButton>
-          )}
-          {onBookmark && (
-            <IconButton
-              ariaLabel={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
-              onClick={onBookmark}
-              active={isBookmarked}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-              </svg>
-            </IconButton>
-          )}
-          {onCopy && (
-            <IconButton ariaLabel="Copy verse" onClick={onCopy}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-              </svg>
-            </IconButton>
-          )}
-          {onShare && (
-            <IconButton ariaLabel="Share verse" onClick={onShare}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="18" cy="5" r="3" />
-                <circle cx="6" cy="12" r="3" />
-                <circle cx="18" cy="19" r="3" />
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-              </svg>
-            </IconButton>
-          )}
-          {onTafsir && (
-            <IconButton ariaLabel="View tafsir" onClick={onTafsir}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-              </svg>
-            </IconButton>
-          )}
-        </div>
+          )
+        )}
       </div>
 
       {/* Arabic text */}
@@ -159,6 +131,13 @@ export function VerseCard({
       {showEnglish && english && (
         <p className="verse-english leading-relaxed break-words">
           {english}
+        </p>
+      )}
+
+      {/* Urdu translation */}
+      {showUrdu && urdu && (
+        <p className="text-ink-2 text-sm leading-relaxed break-words" dir="rtl" lang="ur" style={{ fontFamily: 'var(--font-arabic)' }}>
+          {urdu}
         </p>
       )}
     </div>

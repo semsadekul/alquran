@@ -35,7 +35,19 @@ export function Card({
 
   if (onClick) {
     return (
-      <Tag className={classes} onClick={onClick} role="button" tabIndex={0}>
+      <Tag
+        className={classes}
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={typeof children === 'string' ? children : undefined}
+      >
         {children}
       </Tag>
     );

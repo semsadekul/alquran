@@ -17,6 +17,7 @@ export interface Ayah {
   english: string;
   transliteration: string;
   banglaTransliteration?: string;
+  urdu?: string;
   juz?: number;
   page?: number;
   hizbQuarter?: number;
@@ -49,6 +50,7 @@ export interface ReaderPreferences {
   showArabic: boolean;
   showBangla: boolean;
   showEnglish: boolean;
+  showUrdu: boolean;
   showTransliteration: boolean;
   showBanglaTransliteration: boolean;
   lineSpacing: 'compact' | 'normal' | 'spacious';

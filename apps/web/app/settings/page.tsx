@@ -18,6 +18,7 @@ const defaultPrefs: ReaderPreferences = {
   showArabic: true,
   showBangla: true,
   showEnglish: true,
+  showUrdu: false,
   showTransliteration: false,
   showBanglaTransliteration: false,
   lineSpacing: 'normal',
@@ -134,6 +135,12 @@ export default function SettingsPage() {
               description="Show Saheeh International translation"
               checked={preferences.showEnglish}
               onChange={(v) => updatePref({ showEnglish: v })}
+            />
+            <SettingRow
+              label="Urdu Translation"
+              description="Show Urdu translation"
+              checked={preferences.showUrdu}
+              onChange={(v) => updatePref({ showUrdu: v })}
             />
             <SettingRow
               label="Transliteration"

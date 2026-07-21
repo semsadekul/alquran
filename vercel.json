@@ -1,0 +1,7 @@
+{
+  "buildCommand": "pnpm install --filter @alquran/web && pnpm build:web",
+  "outputDirectory": "apps/web/out",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "rootDirectory": "apps/web"
+}

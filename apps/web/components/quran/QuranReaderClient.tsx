@@ -15,10 +15,15 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { VerseCard } from '@/components/ui/VerseCard';
-import { Play, BookOpen, ArrowLeft, Download } from 'lucide-react';
+import { Play, BookOpen, ArrowLeft, Download, BookMarked } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useDownloads } from '@/components/audio/useDownloads';
 import { DownloadButton } from '@/components/audio/DownloadButton';
+import { JuzNavigator } from './JuzNavigator';
+import { getJuzForVerse } from '@/lib/data/juz';
+import { GoToAyah } from './GoToAyah';
+import { useAnnounce } from '@/components/ui/Announce';
+import { VirtualVerseList } from './VirtualVerseList';
 
 const defaultPrefs: ReaderPreferences = {
   theme: 'dark',
@@ -28,6 +33,7 @@ const defaultPrefs: ReaderPreferences = {
   showArabic: true,
   showBangla: true,
   showEnglish: true,
+  showUrdu: false,
   showTransliteration: false,
   showBanglaTransliteration: false,
   lineSpacing: 'normal',
@@ -51,6 +57,7 @@ export function QuranReaderClient({
 
   const { getRecord, manager } = useDownloads();
   const downloadRecord = getRecord('Alafasy_128kbps', surah.number);
+  const { announce } = useAnnounce();
 
   const [preferences, setPreferences] = useLocalStorage<ReaderPreferences>(
     'alquran_preferences',
@@ -87,6 +94,13 @@ export function QuranReaderClient({
   });
 
   useEffect(() => {
+    if (activeAyahKey) {
+      const [surahNum, ayahNum] = activeAyahKey.split('-');
+      announce(`Now playing verse ${ayahNum} of ${surah.englishName}`);
+    }
+  }, [activeAyahKey, surah.englishName, announce]);
+
+  useEffect(() => {
     if (activeRef.current) {
       activeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -98,10 +112,11 @@ export function QuranReaderClient({
       style={{
         '--arabic-size-multiplier': preferences.arabicFontSize / 38,
         '--translation-size-multiplier': preferences.banglaFontSize / 16,
+        '--line-spacing-multiplier': preferences.lineSpacing === 'compact' ? 0.85 : preferences.lineSpacing === 'spacious' ? 1.2 : 1,
       } as React.CSSProperties}
     >
-      {/* Back link + settings */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Back link + settings + juz navigator + go to ayah */}
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <Link
           href="/quran/surahs"
           className="inline-flex items-center gap-2 text-sm text-ink-2 hover:text-accent transition-colors min-h-[44px]"
@@ -109,12 +124,16 @@ export function QuranReaderClient({
           <ArrowLeft size={16} />
           সূরা তালিকা
         </Link>
-        <ReadingSettings
-          preferences={preferences}
-          onChange={(newPrefs) =>
-            setPreferences({ ...preferences, ...newPrefs })
-          }
-        />
+        <div className="flex items-center gap-3 flex-wrap">
+          <GoToAyah surahNumber={surah.number} numberOfAyahs={surah.numberOfAyahs} />
+          <JuzNavigator currentJuz={getJuzForVerse(surah.number, 1)} />
+          <ReadingSettings
+            preferences={preferences}
+            onChange={(newPrefs) =>
+              setPreferences({ ...preferences, ...newPrefs })
+            }
+          />
+        </div>
       </div>
 
       {/* Surah Header Card */}
@@ -137,6 +156,28 @@ export function QuranReaderClient({
         <div className="flex justify-center gap-3 mb-6">
           <Badge tone="gold">{surah.revelationType}</Badge>
           <Badge tone="gold">{surah.numberOfAyahs} Ayahs</Badge>
+        </div>
+
+        {/* Reading Progress Bar */}
+        <div className="mb-6 max-w-xs mx-auto">
+          <div className="flex items-center justify-between text-xs text-white/60 mb-2">
+            <span>Progress</span>
+            <span>{activeAyahKey ? Math.round((parseInt(activeAyahKey.split('-')[1] || '0') / surah.numberOfAyahs) * 100) : 0}%</span>
+          </div>
+          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#c5a059] to-[#e2c275] transition-all duration-500"
+              style={{
+                width: activeAyahKey
+                  ? `${(parseInt(activeAyahKey.split('-')[1] || '0') / surah.numberOfAyahs) * 100}%`
+                  : '0%',
+              }}
+              role="progressbar"
+              aria-valuenow={activeAyahKey ? (parseInt(activeAyahKey.split('-')[1] || '0') / surah.numberOfAyahs) * 100 : 0}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            />
+          </div>
         </div>
 
         <div className="flex justify-center gap-3 flex-wrap items-center">
@@ -180,36 +221,52 @@ export function QuranReaderClient({
         </div>
       )}
 
-      {/* Verses */}
-      <div className="space-y-2">
-        {verses.map((verse) => {
-          const key = `${verse.surah}-${verse.ayah}`;
-          const isActive = activeAyahKey === key;
-          return (
-            <div
-              key={verse.number}
-              ref={isActive ? activeRef : null}
-            >
-              <VerseCard
-                verseNumber={verse.ayah}
-                arabic={verse.arabic}
-                bangla={verse.bangla}
-                english={verse.english}
-                transliteration={verse.transliteration}
-                banglaTransliteration={verse.banglaTransliteration}
-                isActive={isActive}
-                showBangla={preferences.showBangla}
-                showEnglish={preferences.showEnglish}
-                showTransliteration={
-                  preferences.showTransliteration ||
-                  preferences.showBanglaTransliteration
-                }
-                onPlay={() => playback.playAyah(verse, verses)}
-              />
-            </div>
-          );
-        })}
-      </div>
+      {/* Verses — virtualized for long surahs (≥50 ayahs) */}
+      {verses.length >= 50 ? (
+        <VirtualVerseList
+          verses={verses}
+          surah={surah}
+          preferences={preferences}
+          activeAyahKey={activeAyahKey}
+          onPlay={(verse) => playback.playAyah(verse, verses)}
+          onActiveRef={(el) => { activeRef.current = el; }}
+        />
+      ) : (
+        <div className="space-y-2">
+          {verses.map((verse) => {
+            const key = `${verse.surah}-${verse.ayah}`;
+            const isActive = activeAyahKey === key;
+            return (
+              <div
+                key={verse.number}
+                ref={isActive ? activeRef : null}
+              >
+                <VerseCard
+                  verseNumber={verse.ayah}
+                  arabic={verse.arabic}
+                  bangla={verse.bangla}
+                  english={verse.english}
+                  urdu={verse.urdu}
+                  transliteration={verse.transliteration}
+                  banglaTransliteration={verse.banglaTransliteration}
+                  isActive={isActive}
+                  showBangla={preferences.showBangla}
+                  showEnglish={preferences.showEnglish}
+                  showUrdu={preferences.showUrdu}
+                  showTransliteration={
+                    preferences.showTransliteration ||
+                    preferences.showBanglaTransliteration
+                  }
+                  onPlay={() => playback.playAyah(verse, verses)}
+                  surahName={surah.englishName}
+                  surahNumber={surah.number}
+                  verse={verse}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Surah navigation */}
       <nav className="flex justify-between items-center mt-12 pt-8 border-t border-line">

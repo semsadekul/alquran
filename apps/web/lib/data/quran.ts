@@ -42,6 +42,7 @@ export interface AyahRecord {
   english: string;
   transliteration: string;
   banglaTransliteration?: string;
+  urdu?: string;
 }
 
 interface LegacyVerseSource {
@@ -73,10 +74,20 @@ function loadSurahVerses(surahNumber: number): AyahRecord[] {
   const translit = readJsonFile<LegacyVerseSource>('en.transliteration.json');
   const bnPronRaw = readJsonFile<Record<string, string>>('bangla_pronunciation.json');
 
+  // Load Urdu translation (optional - may not exist)
+  let urduSurahs: Array<{ number: number; ayahs: Array<{ number: number; text: string; numberInSurah: number }> }> | null = null;
+  try {
+    const urduData = readJsonFile<LegacyVerseSource>('ur.urd.json');
+    urduSurahs = urduData.data.surahs;
+  } catch {
+    // Urdu translation not available
+  }
+
   const arSurah = arabic.data.surahs[surahNumber - 1];
   const bnSurah = bangla.data.surahs[surahNumber - 1];
   const enSurah = english.data.surahs[surahNumber - 1];
   const trSurah = translit.data.surahs[surahNumber - 1];
+  const urSurah = urduSurahs?.[surahNumber - 1];
 
   if (!arSurah || !bnSurah || !enSurah || !trSurah) return [];
 
@@ -86,6 +97,7 @@ function loadSurahVerses(surahNumber: number): AyahRecord[] {
     const bn = bnSurah.ayahs[i];
     const en = enSurah.ayahs[i];
     const tr = trSurah.ayahs[i];
+    const ur = urSurah?.ayahs[i];
 
     const ayahNum = ar.numberInSurah;
     const absoluteNum = ar.number;
@@ -95,9 +107,9 @@ function loadSurahVerses(surahNumber: number): AyahRecord[] {
 
     // Legacy hardcoded fixes
     if (surahNumber === 26 && ayahNum === 1) {
-      bnTranslit = 'তা-ছিম মীম।';
+      bnTranslit = 'তא-ছিম মীম।';
     } else if (surahNumber === 26 && ayahNum === 227) {
-      bnTranslit = 'ইল্লাল্লাযীনা আ-মানূ ওয়া \'আমিলুস সালিহা-তি ওয়া যাকারুল্লা-হা কাছীরাওঁ ওয়ানতাছারূ মিম বা\'দি মা-জুলিমূ; ওয়া ছাইয়া\'লামুল্লাযীনা জলামূ আইয়া মুনকালাবিইঁ ইয়ানকালিবূ ন।';
+      bnTranslit = 'ইল্লাল্লাযীনা আ-মানূ ওয\'আমিলুস সালিহা-তি ওয\'আকিরুল্লَا-হা কাছীরাওঁ ওয\'আনতাছারূ মিম বা\'দি মَا-জুলিমূ; ওয\'আছাইয\'আলামুল্লَاযীনা জালামূ আইয\'আ মুনকালাবিইঁ ইয\'আনকালিবূ ন।';
     }
 
     records.push({
@@ -108,7 +120,8 @@ function loadSurahVerses(surahNumber: number): AyahRecord[] {
       bangla: bn.text,
       english: en.text,
       transliteration: tr.text,
-      banglaTransliteration: bnTranslit
+      banglaTransliteration: bnTranslit,
+      urdu: ur?.text || '',
     });
   }
 

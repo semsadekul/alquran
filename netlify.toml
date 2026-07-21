@@ -1,0 +1,8 @@
+[build]
+  base = "apps/web"
+  command = "pnpm install --filter @alquran/web && pnpm build:web"
+  publish = "apps/web/out"
+
+[build.environment]
+  NODE_VERSION = "22"
+  PNPM_VERSION = "11"

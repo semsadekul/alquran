@@ -1,10 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { Bookmark, Search, Library, BookOpen } from 'lucide-react';
+import { Bookmark, Search, Library, BookOpen, Flame, Target } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useHifzState } from '../hooks/useHifzState';
+import { useReadingStreak } from '../hooks/useReadingStreak';
 import { useRouter } from 'next/navigation';
+import { DailyVerse } from '@/components/DailyVerse';
+import { Card } from '@/components/ui/Card';
+import { Progress } from '@/components/ui/Progress';
+import { cn } from '@/lib/cn';
 
 interface LastReadData {
   surah: number;
@@ -25,6 +30,7 @@ const DEFAULT_LAST_READ: LastReadData = {
 export default function HomePage() {
   const router = useRouter();
   const { state: hifzState } = useHifzState();
+  const { streak, recordReading } = useReadingStreak();
   const [lastRead, setLastRead] = useState<LastReadData>(DEFAULT_LAST_READ);
 
   useEffect(() => {
@@ -39,6 +45,13 @@ export default function HomePage() {
     }
   }, []);
 
+  // Record reading when page loads (simulating reading activity)
+  useEffect(() => {
+    if (lastRead.ayah > 0) {
+      recordReading(lastRead.ayah);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleContinueReading = () => {
     router.push(`/quran/surahs/${lastRead.surah}#verse-${lastRead.ayah}`);
   };
@@ -51,8 +64,46 @@ export default function HomePage() {
     ? Math.round((lastRead.ayah / lastRead.numberOfAyahs) * 100)
     : 0;
 
+  const goalPercent = streak.dailyGoal > 0
+    ? Math.min(100, (streak.todayVerses / streak.dailyGoal) * 100)
+    : 0;
+
   return (
     <div className="flex flex-col gap-6 pb-8">
+      {/* Daily Verse - Hero Section */}
+      <DailyVerse />
+
+      {/* Reading Goals & Streaks Card */}
+      <Card className="bg-gradient-to-br from-[#0a3622] to-[#145338] text-white border border-[#1a5e3f]/40">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <Flame size={18} className="text-[var(--color-majestic-gold)]" />
+            Reading Streak
+          </h3>
+          <div className="flex items-center gap-1 text-sm text-white/70">
+            <Target size={14} />
+            <span>{streak.todayVerses}/{streak.dailyGoal} verses</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[var(--color-majestic-gold)]">{streak.currentStreak}</div>
+            <div className="text-xs text-white/60">Day Streak</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[var(--color-majestic-gold)]">{streak.longestStreak}</div>
+            <div className="text-xs text-white/60">Best Streak</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[var(--color-majestic-gold)]">{streak.totalDaysRead}</div>
+            <div className="text-xs text-white/60">Total Days</div>
+          </div>
+        </div>
+
+        <Progress value={goalPercent} label="Daily Goal Progress" size="sm" />
+      </Card>
+
       {/* Desktop 2-Column Hero Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Continue Reading Card */}

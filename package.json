@@ -11,7 +11,9 @@
     "build:web": "pnpm --filter @alquran/web build",
     "build:android": "pnpm build:web && npx cap sync android",
     "open:android": "npx cap open android",
-    "android": "pnpm build:android && npx cap open android"
+    "android": "pnpm build:android && npx cap open android",
+    "clean": "rm -rf node_modules apps/web/.next apps/web/out apps/web/.turbo .turbo",
+    "clean:restore": "pnpm install && pnpm build:web"
   },
   "devDependencies": {
     "@capacitor/cli": "6.2.1",
