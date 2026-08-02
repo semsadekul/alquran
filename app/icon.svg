@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9a75f"/>
+      <stop offset="1" stop-color="#a8863e"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#faf7f0"/>
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="#b8964a" stroke-opacity="0.25" stroke-width="4"/>
+  <!-- Crescent -->
+  <circle cx="256" cy="128" r="46" fill="url(#gold)"/>
+  <circle cx="280" cy="116" r="40" fill="#faf7f0"/>
+  <!-- Open book -->
+  <path d="M256 340
+           C 212 314 158 306 104 312
+           L 104 204
+           C 160 198 214 208 256 236
+           C 298 208 352 198 408 204
+           L 408 312
+           C 354 306 300 314 256 340 Z" fill="url(#gold)"/>
+  <!-- Book spine -->
+  <path d="M256 236 L256 340" stroke="#faf7f0" stroke-width="6" stroke-linecap="round"/>
+  <!-- Page lines -->
+  <path d="M132 238 C 168 230 208 234 236 246" stroke="#faf7f0" stroke-width="5" stroke-linecap="round" fill="none" stroke-opacity="0.9"/>
+  <path d="M132 262 C 170 254 212 258 240 270" stroke="#faf7f0" stroke-width="5" stroke-linecap="round" fill="none" stroke-opacity="0.7"/>
+  <path d="M380 238 C 344 230 304 234 276 246" stroke="#faf7f0" stroke-width="5" stroke-linecap="round" fill="none" stroke-opacity="0.9"/>
+  <path d="M380 262 C 342 254 300 258 272 270" stroke="#faf7f0" stroke-width="5" stroke-linecap="round" fill="none" stroke-opacity="0.7"/>
+</svg>
