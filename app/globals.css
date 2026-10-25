@@ -5,40 +5,51 @@
 :root {
   /* ── Premium Classic · Cream / Soft Gray / Gold ─────────────────────── */
   /* Light surfaces */
-  --bg: #faf7f0;             /* cream page background */
-  --bg-subtle: #f5f1e8;      /* slightly deeper cream band */
+  --bg: #f7f2e7;             /* warm cream page background (design: #F7F2E7) */
+  --bg-subtle: #f2ecde;      /* slightly deeper cream band */
   --surface: #fffdf8;        /* card surface */
   --surface-1: #fffdf8;      /* surface ramp 1 (alias of surface) */
-  --surface-2: #f7f3eb;      /* surface ramp 2 */
-  --surface-3: #f1ecdf;      /* surface ramp 3 */
-  --surface-highlight: #f3ede0;
-  --surface-elevated: #fffefb; /* raised/over-surface */
-  --surface-muted: #f0eadd;
+  --surface-2: #f6f1e5;      /* surface ramp 2 */
+  --surface-3: #efe8d9;      /* surface ramp 3 */
+  --surface-highlight: #f2ebdb;
+  --surface-elevated: #fffefa; /* raised/over-surface */
+  --surface-muted: #ede6d6;
 
   /* Ink (text) ramp — warm neutrals */
-  --text: #2c2a26;
-  --text-muted: #6b655a;
-  --ink: #2c2a26;            /* ink ramp 1 (alias of text) */
-  --ink-2: #4a463d;          /* ink ramp 2 */
-  --ink-3: #6b655a;          /* ink ramp 3 (alias of text-muted) */
-  --ink-4: #8c8474;          /* ink ramp 4 (faded) */
+  --text: #1b1a17;
+  --text-muted: #5e5a50;
+  --ink: #1b1a17;            /* ink ramp 1 (alias of text) */
+  --ink-2: #3b3830;          /* ink ramp 2 */
+  --ink-3: #5e5a50;          /* ink ramp 3 (alias of text-muted) */
+  --ink-4: #837c6e;          /* ink ramp 4 (faded) */
 
   /* Borders */
-  --border: #e8e2d5;
-  --border-default: #e8e2d5;
-  --border-subtle: #efe9dc;  /* near-invisible hairline */
-  --border-soft: #ede6d6;    /* between subtle and default */
+  --border: #e3dac7;
+  --border-default: #e3dac7;
+  --border-subtle: #ece4d3;  /* near-invisible hairline */
+  --border-soft: #e8dfcc;    /* between subtle and default */
 
   /* Gold accents */
-  --gold: #b8964a;
-  --gold-dark: #9a7a3c;      /* darker gold for text-on-cream (AA contrast) */
-  --gold-light: #d0a85e;
-  --gold-soft: #e3c989;
+  --gold: #d9b96a;           /* fills, progress bars, active indicators */
+  --gold-dark: #7a5f1f;      /* gold for text-on-cream + hairlines (AA contrast) */
+  --gold-light: #e3c98d;
+  --gold-soft: #efddb4;
+
+  /* Deep forest — the "continue reading" hero and other high-emphasis blocks */
+  --forest: #0b1f1a;
+  --forest-2: #0e2a22;
+  --forest-ink: #e9e4d8;
+
+  /* Gold hairlines with alpha. Declared as rgba because Tailwind cannot apply
+     an opacity modifier to a plain `var(--token)` colour. */
+  --gold-line: rgba(122, 95, 31, 0.2);
+  --gold-line-strong: rgba(217, 185, 106, 0.45);
+  --gold-veil: rgba(217, 185, 106, 0.1);
 
   /* Primary / secondary aliased onto gold + warm ink for semantic classes */
-  --primary: #b8964a;
-  --primary-light: #d0a85e;
-  --secondary: #6b655a;
+  --primary: #7a5f1f;
+  --primary-light: #d9b96a;
+  --secondary: #5e5a50;
 
   /* Semantic */
   --success: #5b7c54;        /* muted olive-green */
@@ -70,6 +81,15 @@
   --learn: #6f7691;
   --learn-light: #8a90a8;
 
+  /* Tajweed Rule Palette (Harmonized Pastels) */
+  --tajweed-ghunnah: #2e7d5b;
+  --tajweed-ikhfa: #b57c1e;
+  --tajweed-iqlab: #b57c1e;
+  --tajweed-idgham: #6c5ce7;
+  --tajweed-qalqalah: #c0392b;
+  --tajweed-madd: #a84373;
+  --tajweed-silent: #837c6e;
+
   /* Elevation */
   --shadow-elevated: 0 12px 40px -16px rgba(60, 50, 30, 0.18);
   --shadow-soft: 0 2px 12px -4px rgba(60, 50, 30, 0.08);
@@ -77,6 +97,8 @@
   /* Fonts (injected by next/font/google via CSS variables) */
   --font-ui: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-display: var(--font-lora), Georgia, 'Times New Roman', serif;
+  /* Bangla display face — headings in Bangla read as serif, like the design */
+  --font-bangla-display: var(--font-bangla-serif), 'Noto Serif Bengali', 'Hind Siliguri', serif;
 }
 
 /* Smooth theme transition */
@@ -113,10 +135,19 @@ html *::after {
   --border-subtle: #2e2a23;
   --border-soft: #34302a;
 
-  --gold: #c9a961;
-  --gold-dark: #d8b97a;       /* lighter for contrast on dark bg */
-  --gold-light: #e3c989;
+  --gold: #d9b96a;
+  --gold-dark: #e3c98d;       /* lighter for contrast on dark bg */
+  --gold-light: #efddb4;
   --gold-soft: #8a7340;
+
+  /* Forest lifted slightly so the hero still separates from the dark page */
+  --forest: #0e2a22;
+  --forest-2: #123429;
+  --forest-ink: #ede7da;
+
+  --gold-line: rgba(227, 201, 141, 0.22);
+  --gold-line-strong: rgba(217, 185, 106, 0.5);
+  --gold-veil: rgba(217, 185, 106, 0.12);
 
   --primary: #c9a961;
   --primary-light: #e3c989;
@@ -139,6 +170,15 @@ html *::after {
   --duas: #c0984c;
   --hifz: #a87560;
   --learn: #8a90a8;
+
+  /* Tajweed Rule Palette for Dark Mode */
+  --tajweed-ghunnah: #4ade80;
+  --tajweed-ikhfa: #facc15;
+  --tajweed-iqlab: #facc15;
+  --tajweed-idgham: #a78bfa;
+  --tajweed-qalqalah: #f87171;
+  --tajweed-madd: #f472b6;
+  --tajweed-silent: #78716c;
 
   --shadow-elevated: 0 12px 40px -16px rgba(0, 0, 0, 0.5);
   --shadow-soft: 0 2px 12px -4px rgba(0, 0, 0, 0.3);
@@ -207,6 +247,12 @@ html *::after {
 
   .bangla-ui {
     font-family: var(--font-bengali-ui);
+  }
+
+  /* Bangla display headings (serif) */
+  .bangla-display {
+    font-family: var(--font-bangla-display);
+    letter-spacing: -0.01em;
   }
 
   /* Arabic typography */
@@ -518,5 +564,46 @@ html *::after {
   .btn-ripple:active::after {
     opacity: 1;
     transition: opacity 0.1s;
+  }
+
+  /* ── Tajweed Rule Classes ─────────────────────────────────────── */
+  .tajweed-ghunnah {
+    color: var(--tajweed-ghunnah) !important;
+    font-weight: 500;
+  }
+  .tajweed-ikhfa {
+    color: var(--tajweed-ikhfa) !important;
+    font-weight: 500;
+  }
+  .tajweed-iqlab {
+    color: var(--tajweed-iqlab) !important;
+    font-weight: 500;
+  }
+  .tajweed-idgham {
+    color: var(--tajweed-idgham) !important;
+    font-weight: 500;
+  }
+  .tajweed-qalqalah {
+    color: var(--tajweed-qalqalah) !important;
+    font-weight: 600;
+  }
+  .tajweed-madd {
+    color: var(--tajweed-madd) !important;
+    font-weight: 600;
+  }
+  .tajweed-silent {
+    color: var(--tajweed-silent) !important;
+    opacity: 0.65;
+  }
+
+  /* ── Arabic Script Classes ────────────────────────────────────── */
+  .font-uthmani {
+    font-family: var(--font-arabic), 'KFGQPC Uthmanic Script HAFS', 'Scheherazade New', 'Amiri', serif;
+  }
+
+  .font-indopak {
+    font-family: 'Noori Nastaleeq', 'Urdu Typesetting', 'Al Qalam', 'Nafees', 'Noto Nastaliq Urdu', var(--font-arabic), serif;
+    line-height: 2.8;
+    letter-spacing: 0.02em;
   }
 }

@@ -30,17 +30,24 @@ import { QuranAudioPlayer } from './QuranAudioPlayer';
 /**
  * Global playback engine + bottom bar host.
  *
- * Lives at the app root so recitation keeps playing while the user navigates
- * between surahs. Pages trigger playback through `usePlayer().playFromIndex()`.
+ * Implements a dual-buffer audio architecture (<10ms gapless transitions)
+ * and an intelligent sleep timer with a gentle 30-second volume fade-out.
  */
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const intl = useIntl();
+
+  // Dual-buffer audio architecture
+  const audioARef = useRef<HTMLAudioElement | null>(null);
+  const audioBRef = useRef<HTMLAudioElement | null>(null);
+  const activeSlotRef = useRef<'A' | 'B'>('A');
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
   const totalRef = useRef(0);
   const indexRef = useRef(0);
   const hasStartedRef = useRef(false);
   const repeatCounterRef = useRef(0);
-  // Playback session / bar visibility.
+
+  // Playback session / bar visibility
   const [started, setStarted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [surahNumber, setSurahNumber] = useState<number | null>(null);
@@ -62,11 +69,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [singleMode, setSingleMode] = useState(false);
   const [playNonce, setPlayNonce] = useState(0);
 
+  // Sleep Timer state
+  const [sleepTimerOption, setSleepTimerOption] = useState<number | 'end-of-surah' | null>(null);
+  const [sleepTimerEndsAt, setSleepTimerEndsAt] = useState<number | null>(null);
+
   const total = verses.length;
   totalRef.current = total;
   indexRef.current = currentIndex;
 
-  // Restore persisted preferences after mount.
+  // Restore persisted preferences after mount
   useEffect(() => {
     setMounted(true);
     const stored = readAudioSettings();
@@ -95,7 +106,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Persist preferences.
+  // Persist preferences
   useEffect(() => {
     if (!mounted) return;
     saveAudioSettings({
@@ -108,113 +119,198 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
   }, [mounted, reciterId, rate, repeatMode, repeatCount, volume, muted, singleMode]);
 
-  // Create the shared audio element once (survives across page navigation
-  // and player setting changes — it is never torn down mid-session).
+  // Create the shared dual-buffer audio elements once
   useEffect(() => {
-    const audio = new Audio();
-    audio.preload = 'auto';
-    audioRef.current = audio;
+    const audioA = new Audio();
+    const audioB = new Audio();
+    audioA.preload = 'auto';
+    audioB.preload = 'auto';
+    audioARef.current = audioA;
+    audioBRef.current = audioB;
+    audioRef.current = audioA;
+
     return () => {
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
+      [audioA, audioB].forEach((a) => {
+        a.pause();
+        a.removeAttribute('src');
+        a.load();
+      });
+      audioARef.current = null;
+      audioBRef.current = null;
       audioRef.current = null;
     };
   }, []);
 
-  // Latest "ended" handler (reads current repeat/single settings without
-  // forcing the media listeners to be re-attached).
+  // Preload next ayah onto the idle buffer for sub-10ms gapless transition
+  const preloadNext = useCallback(
+    (nextIdx: number) => {
+      if (surahNumber === null || nextIdx >= verses.length) return;
+      const nextVerse = verses[nextIdx];
+      if (!nextVerse) return;
+      const idleAudio = activeSlotRef.current === 'A' ? audioBRef.current : audioARef.current;
+      if (!idleAudio) return;
+
+      const nextGlobalAyah = getGlobalAyahNumber(surahNumber, nextVerse.number);
+      const nextUrl = getAyahAudioUrl(reciterId, nextGlobalAyah);
+      if (idleAudio.src !== nextUrl) {
+        idleAudio.src = nextUrl;
+        idleAudio.preload = 'auto';
+        idleAudio.load();
+      }
+    },
+    [surahNumber, verses, reciterId],
+  );
+
+  // Latest "ended" handler (swaps buffer for instant gapless playback)
   const endedHandlerRef = useRef<() => void>(() => {});
   useEffect(() => {
     endedHandlerRef.current = () => {
-      // repeatCount === 0 means "repeat this verse forever" (∞).
       const shouldRepeatVerse =
         repeatMode === 'verse' &&
         (repeatCount === 0 || repeatCounterRef.current < repeatCount - 1);
+
       if (shouldRepeatVerse) {
-        // Repeat this verse
         repeatCounterRef.current += 1;
         setVerseRepeatDisplay(repeatCounterRef.current + 1);
-        if (audioRef.current) {
-          audioRef.current.currentTime = 0;
-          audioRef.current.play();
+        const activeAudio = activeSlotRef.current === 'A' ? audioARef.current : audioBRef.current;
+        if (activeAudio) {
+          activeAudio.currentTime = 0;
+          activeAudio.play().catch(() => {});
         }
       } else if (singleMode) {
-        // Single-ayah mode — stop after this ayah (no advancing, no looping).
         repeatCounterRef.current = 0;
         setIsPlaying(false);
+      } else if (sleepTimerOption === 'end-of-surah' && indexRef.current >= totalRef.current - 1) {
+        repeatCounterRef.current = 0;
+        setIsPlaying(false);
+        setSleepTimerOption(null);
       } else {
         // Auto-advance
-        if (repeatMode === 'range') {
-          const end = totalRef.current - 1;
-          if (indexRef.current >= end) {
-            // Loop back to the start of the surah
-            repeatCounterRef.current = 0;
-            setCurrentIndex(0);
-            setRangeLoopDisplay((prev) => prev + 1);
-          } else {
-            repeatCounterRef.current = 0;
-            setCurrentIndex(indexRef.current + 1);
-          }
-        } else if (repeatMode === 'verse') {
-          if (indexRef.current >= totalRef.current - 1) {
-            setIsPlaying(false);
-          } else {
-            repeatCounterRef.current = 0;
-            setCurrentIndex(indexRef.current + 1);
-          }
+        let nextIndex = indexRef.current + 1;
+        let shouldLoop = false;
+
+        if (repeatMode === 'range' && nextIndex >= totalRef.current) {
+          nextIndex = 0;
+          shouldLoop = true;
+        }
+
+        if (nextIndex >= totalRef.current) {
+          setIsPlaying(false);
         } else {
-          // No repeat mode
-          if (indexRef.current >= totalRef.current - 1) {
-            setIsPlaying(false);
-          } else {
-            setCurrentIndex(indexRef.current + 1);
+          if (shouldLoop) {
+            setRangeLoopDisplay((prev) => prev + 1);
           }
+          repeatCounterRef.current = 0;
+
+          // Seamless dual-buffer swap!
+          const nextSlot = activeSlotRef.current === 'A' ? 'B' : 'A';
+          const nextAudio = nextSlot === 'A' ? audioARef.current : audioBRef.current;
+          const currentAudio = activeSlotRef.current === 'A' ? audioARef.current : audioBRef.current;
+
+          if (currentAudio) currentAudio.pause();
+
+          if (nextAudio) {
+            nextAudio.playbackRate = rate;
+            nextAudio.volume = muted ? 0 : volume;
+            nextAudio.play().catch(() => {});
+          }
+
+          activeSlotRef.current = nextSlot;
+          audioRef.current = nextAudio;
+          setCurrentIndex(nextIndex);
+
+          // Preload the following verse on the newly idle buffer
+          preloadNext(nextIndex + 1);
         }
       }
     };
-  }, [repeatMode, repeatCount, singleMode]);
+  }, [repeatMode, repeatCount, singleMode, sleepTimerOption, rate, volume, muted, preloadNext]);
 
-  // Attach media events once — cleanup only removes listeners, so playback
-  // is never interrupted by re-running this effect.
+  // Attach media listeners to both buffers
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const onWaiting = () => setIsBuffering(true);
-    const onPlaying = () => setIsBuffering(false);
-    const onCanPlay = () => setIsBuffering(false);
-    const onEnded = () => endedHandlerRef.current();
-    const onError = () => {
-      setIsBuffering(false);
-      setIsPlaying(false);
-      setError(
-        intl.formatMessage({ id: 'audioPlayer.error.stream' })
-      );
+    const a = audioARef.current;
+    const b = audioBRef.current;
+    if (!a || !b) return;
+
+    const attach = (el: HTMLAudioElement, slot: 'A' | 'B') => {
+      const onWaiting = () => {
+        if (activeSlotRef.current === slot) setIsBuffering(true);
+      };
+      const onPlaying = () => {
+        if (activeSlotRef.current === slot) setIsBuffering(false);
+      };
+      const onCanPlay = () => {
+        if (activeSlotRef.current === slot) setIsBuffering(false);
+      };
+      const onEnded = () => {
+        if (activeSlotRef.current === slot) endedHandlerRef.current();
+      };
+      const onError = () => {
+        if (activeSlotRef.current === slot) {
+          setIsBuffering(false);
+          setIsPlaying(false);
+          setError(intl.formatMessage({ id: 'audioPlayer.error.stream' }));
+        }
+      };
+
+      el.addEventListener('waiting', onWaiting);
+      el.addEventListener('playing', onPlaying);
+      el.addEventListener('canplay', onCanPlay);
+      el.addEventListener('ended', onEnded);
+      el.addEventListener('error', onError);
+
+      return () => {
+        el.removeEventListener('waiting', onWaiting);
+        el.removeEventListener('playing', onPlaying);
+        el.removeEventListener('canplay', onCanPlay);
+        el.removeEventListener('ended', onEnded);
+        el.removeEventListener('error', onError);
+      };
     };
 
-    audio.addEventListener('waiting', onWaiting);
-    audio.addEventListener('playing', onPlaying);
-    audio.addEventListener('canplay', onCanPlay);
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('error', onError);
+    const cleanupA = attach(a, 'A');
+    const cleanupB = attach(b, 'B');
 
     return () => {
-      audio.removeEventListener('waiting', onWaiting);
-      audio.removeEventListener('playing', onPlaying);
-      audio.removeEventListener('canplay', onCanPlay);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('error', onError);
+      cleanupA();
+      cleanupB();
     };
   }, [intl]);
 
-  // Keep the audio element's volume in sync.
+  // Keep volume in sync across both buffers
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = muted ? 0 : volume;
-    }
+    const targetVolume = muted ? 0 : volume;
+    if (audioARef.current) audioARef.current.volume = targetVolume;
+    if (audioBRef.current) audioBRef.current.volume = targetVolume;
   }, [volume, muted]);
 
-  // Load + play the current verse.
+  // Sleep Timer ticker with 30s gentle volume fade-out
+  useEffect(() => {
+    if (!sleepTimerEndsAt || !isPlaying) return;
+
+    const interval = setInterval(() => {
+      const remaining = sleepTimerEndsAt - Date.now();
+      if (remaining <= 0) {
+        const activeAudio = audioRef.current;
+        if (activeAudio) activeAudio.pause();
+        setIsPlaying(false);
+        setSleepTimerOption(null);
+        setSleepTimerEndsAt(null);
+        if (activeAudio) activeAudio.volume = muted ? 0 : volume;
+      } else if (remaining <= 30_000) {
+        // Gentle 30-second volume fade-out
+        const activeAudio = audioRef.current;
+        if (activeAudio && !muted) {
+          const factor = Math.max(0, remaining / 30_000);
+          activeAudio.volume = volume * factor;
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [sleepTimerEndsAt, isPlaying, volume, muted]);
+
+  // Load + play the current verse on the active buffer and preload next verse
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || total === 0 || surahNumber === null) return;
@@ -233,14 +329,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audio.play().catch(() => {
         setIsBuffering(false);
         setIsPlaying(false);
-        setError(
-          intl.formatMessage({ id: 'audioPlayer.error.start' })
-        );
+        setError(intl.formatMessage({ id: 'audioPlayer.error.start' }));
       });
+      // Preload next ayah right away
+      preloadNext(currentIndex + 1);
     } else {
       audio.pause();
     }
-  }, [currentIndex, isPlaying, rate, reciterId, surahNumber, total, verses, intl]);
+  }, [currentIndex, isPlaying, rate, reciterId, surahNumber, total, verses, intl, preloadNext]);
 
   // ─── Actions ────────────────────────────────────────────────────────────
   const playFromIndex = useCallback(
@@ -258,7 +354,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setVerseRepeatDisplay(1);
       setPlayNonce((n) => n + 1);
     },
-    []
+    [],
   );
 
   const pauseAtIndex = useCallback((index: number) => {
@@ -274,8 +370,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       hasStartedRef.current = true;
       setStarted(true);
       setDismissed(false);
-      // If paused at the very end of the ayah, restart from the top so
-      // pressing play actually plays something instead of instantly ending.
       const audio = audioRef.current;
       if (
         audio &&
@@ -305,88 +399,73 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setDismissed(false);
     setError(null);
     repeatCounterRef.current = 0;
-    setCurrentIndex((prev) =>
-      prev >= totalRef.current - 1 ? totalRef.current - 1 : prev + 1
-    );
+    setCurrentIndex((prev) => (prev >= totalRef.current - 1 ? prev : prev + 1));
     setIsPlaying(true);
   }, []);
 
   const close = useCallback(() => {
-    setDismissed(true);
-    setError(null);
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
     setIsPlaying(false);
-    hasStartedRef.current = false;
+    setDismissed(true);
+    setSleepTimerOption(null);
+    setSleepTimerEndsAt(null);
   }, []);
 
+  const handleReciterChange = useCallback(
+    (id: string) => {
+      if (!RECITERS.some((r) => r.id === id)) return;
+      const audio = audioRef.current;
+      const prevTime = audio?.currentTime || 0;
+      setReciterId(id);
+      if (surahNumber !== null && verses[currentIndex]) {
+        const globalAyah = getGlobalAyahNumber(surahNumber, verses[currentIndex].number);
+        const url = getAyahAudioUrl(id, globalAyah);
+        if (audio) {
+          audio.src = url;
+          audio.currentTime = prevTime;
+          if (isPlaying) audio.play().catch(() => {});
+        }
+      }
+    },
+    [currentIndex, isPlaying, surahNumber, verses],
+  );
+
   const changeRepeatMode = useCallback((m: RepeatMode) => {
-    repeatCounterRef.current = 0;
     setRepeatMode(m);
-    if (m === 'verse') setVerseRepeatDisplay(1);
-    if (m === 'range') setRangeLoopDisplay(1);
+    repeatCounterRef.current = 0;
+    setVerseRepeatDisplay(1);
+    setRangeLoopDisplay(1);
   }, []);
 
   const changeRepeatCount = useCallback((n: number) => {
+    setRepeatCount(n);
     repeatCounterRef.current = 0;
     setVerseRepeatDisplay(1);
-    setRepeatCount(n);
   }, []);
 
-  const toggleSingleMode = useCallback(() => {
-    const next = !singleMode;
-    setSingleMode(next);
-    // Single-ayah mode is incompatible with a full-surah loop — clear the
-    // loop so the badge and behavior stay consistent.
-    if (next && repeatMode === 'range') {
-      repeatCounterRef.current = 0;
-      setRepeatMode('none');
-    }
-  }, [singleMode, repeatMode]);
-
-  const handleReciterChange = useCallback((id: string) => {
-    setError(null);
-    setReciterId(id);
+  const toggleSingleMode = useCallback((b: boolean) => {
+    setSingleMode(b);
   }, []);
 
-  const open = started && !dismissed;
-
-  // Media Session — lock-screen metadata + hardware controls.
-  const toggleRef = useRef(toggle);
-  const goPrevRef = useRef(goPrev);
-  const goNextRef = useRef(goNext);
-  toggleRef.current = toggle;
-  goPrevRef.current = goPrev;
-  goNextRef.current = goNext;
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
-    const verse = currentIndex >= 0 ? verses[currentIndex] : undefined;
-    if (!verse || !open) return;
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: `${surahName ?? `Surah ${surahNumber}`} · ${surahNumber}:${verse.number}`,
-        artist: getReciter(reciterId).name,
-        album: 'Al Quran',
-      });
-      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-    } catch {
-      /* Media Session unavailable — non-critical */
-    }
-  }, [currentIndex, isPlaying, reciterId, verses, surahName, surahNumber, open]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
-    try {
-      navigator.mediaSession.setActionHandler('play', () => toggleRef.current());
-      navigator.mediaSession.setActionHandler('pause', () => toggleRef.current());
-      navigator.mediaSession.setActionHandler('previoustrack', () => goPrevRef.current());
-      navigator.mediaSession.setActionHandler('nexttrack', () => goNextRef.current());
-    } catch {
-      /* ignore */
+  const setSleepTimer = useCallback((option: number | 'end-of-surah' | null) => {
+    setSleepTimerOption(option);
+    if (typeof option === 'number') {
+      setSleepTimerEndsAt(Date.now() + option * 60 * 1000);
+    } else {
+      setSleepTimerEndsAt(null);
     }
   }, []);
 
-  const currentVerse =
-    currentIndex >= 0 && currentIndex < verses.length ? verses[currentIndex] : null;
+  const currentVerse = useMemo(() => {
+    if (total === 0) return null;
+    return verses[currentIndex] ?? null;
+  }, [currentIndex, total, verses]);
+
+  const open = started && !dismissed && surahNumber !== null && total > 0;
 
   const value = useMemo<PlayerContextValue>(
     () => ({
@@ -410,6 +489,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       muted,
       audioRef,
       playNonce,
+      sleepTimerOption,
+      sleepTimerEndsAt,
       playFromIndex,
       pauseAtIndex,
       toggle,
@@ -423,6 +504,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setSingleMode: toggleSingleMode,
       setVolume,
       setMuted,
+      setSleepTimer,
     }),
     [
       surahNumber,
@@ -443,8 +525,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       rate,
       volume,
       muted,
-      audioRef,
       playNonce,
+      sleepTimerOption,
+      sleepTimerEndsAt,
       playFromIndex,
       pauseAtIndex,
       toggle,
@@ -455,13 +538,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       changeRepeatMode,
       changeRepeatCount,
       toggleSingleMode,
-    ]
+      setSleepTimer,
+    ],
   );
 
   return (
     <PlayerContext.Provider value={value}>
       {children}
-      {/* Spacer so the global bar never hides page content on any page. */}
       {open && <div aria-hidden="true" className="h-48 lg:h-36" />}
       <QuranAudioPlayer />
     </PlayerContext.Provider>

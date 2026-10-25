@@ -15,7 +15,12 @@ import {
   RepeatIcon,
   SingleVerseIcon,
   CloseIcon,
+  MoonIcon,
+  DownloadIcon,
+  CheckIcon,
+  TrashIcon,
 } from '@/components/ui/Icon';
+import { isSurahAudioCached, downloadSurahAudio, deleteSurahAudioCache } from '@/lib/audio/cache';
 
 /** mm:ss, or h:mm:ss when the track is an hour or longer. */
 function formatTime(seconds: number): string {
@@ -56,6 +61,9 @@ export function QuranAudioPlayer() {
     muted,
     audioRef,
     playNonce,
+    sleepTimerOption,
+    sleepTimerEndsAt,
+    setSleepTimer,
     toggle,
     goPrev,
     goNext,
@@ -72,13 +80,81 @@ export function QuranAudioPlayer() {
   // Popover visibility is bar-local UI state (keeps provider re-renders low).
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [repeatOpen, setRepeatOpen] = useState(false);
+  const [sleepOpen, setSleepOpen] = useState(false);
+
   const toggleSettings = () => {
     setSettingsOpen((s) => !s);
     setRepeatOpen(false);
+    setSleepOpen(false);
   };
   const toggleRepeat = () => {
     setRepeatOpen((o) => !o);
     setSettingsOpen(false);
+    setSleepOpen(false);
+  };
+  const toggleSleep = () => {
+    setSleepOpen((s) => !s);
+    setSettingsOpen(false);
+    setRepeatOpen(false);
+  };
+
+  // Live countdown remaining text for sleep timer
+  const [sleepRemainingText, setSleepRemainingText] = useState<string | null>(null);
+  useEffect(() => {
+    if (!sleepTimerEndsAt) {
+      setSleepRemainingText(null);
+      return;
+    }
+    const update = () => {
+      const diffMs = sleepTimerEndsAt - Date.now();
+      if (diffMs <= 0) {
+        setSleepRemainingText(null);
+        return;
+      }
+      const totalSec = Math.ceil(diffMs / 1000);
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      setSleepRemainingText(`${m}:${String(s).padStart(2, '0')}`);
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [sleepTimerEndsAt]);
+
+  // Offline audio caching state
+  const [isCached, setIsCached] = useState(false);
+  const [downloadingPct, setDownloadingPct] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (surahNumber && total > 0) {
+      isSurahAudioCached(reciterId, surahNumber, total).then((cached) => {
+        if (!cancelled) setIsCached(cached);
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [surahNumber, reciterId, total]);
+
+  const handleDownloadToggle = async () => {
+    if (!surahNumber || total <= 0) return;
+    if (isCached) {
+      await deleteSurahAudioCache(reciterId, surahNumber, total);
+      setIsCached(false);
+    } else {
+      setDownloadingPct(0);
+      try {
+        await downloadSurahAudio(reciterId, surahNumber, total, (pct) => {
+          setDownloadingPct(pct);
+        });
+        setIsCached(true);
+      } catch (err) {
+        console.error('[AudioPlayer] Download failed:', err);
+      } finally {
+        setDownloadingPct(null);
+      }
+    }
   };
 
   // Seek/time display is local — the provider avoids re-rendering the whole
@@ -123,6 +199,7 @@ export function QuranAudioPlayer() {
       setDuration(0);
       setSettingsOpen(false);
       setRepeatOpen(false);
+      setSleepOpen(false);
     }
   }, [playNonce]);
 
@@ -183,6 +260,121 @@ export function QuranAudioPlayer() {
                 ))}
               </select>
             </label>
+
+            {/* Offline download */}
+            <div className="pt-2 border-t border-border space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-text-muted">
+                  {intl.formatMessage({ id: 'audioPlayer.downloadSurah' })}
+                </span>
+                {isCached && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    <CheckIcon className="w-3.5 h-3.5" />
+                    {intl.formatMessage({ id: 'audioPlayer.downloaded' })}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadToggle}
+                disabled={downloadingPct !== null}
+                className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  isCached
+                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                    : 'bg-gold/15 text-gold-dark hover:bg-gold/25'
+                }`}
+              >
+                {downloadingPct !== null ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+                    {intl.formatMessage({ id: 'audioPlayer.downloading' }, { percent: downloadingPct })}
+                  </>
+                ) : isCached ? (
+                  <>
+                    <TrashIcon className="w-3.5 h-3.5" />
+                    {intl.formatMessage({ id: 'audioPlayer.deleteDownload' })}
+                  </>
+                ) : (
+                  <>
+                    <DownloadIcon className="w-3.5 h-3.5" />
+                    {intl.formatMessage({ id: 'audioPlayer.downloadSurah' })}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Sleep Timer popover */}
+        {sleepOpen && (
+          <div className="absolute bottom-full right-3 sm:right-4 mb-2 w-64 max-w-[calc(100vw-1.5rem)] rounded-xl border border-border bg-surface shadow-elevated p-4 space-y-1.5 animate-scale-in">
+            <div className="flex items-center justify-between pb-1">
+              <p className="text-xs font-semibold text-text uppercase tracking-wider flex items-center gap-1.5">
+                <MoonIcon className="w-3.5 h-3.5 text-gold" />
+                {intl.formatMessage({ id: 'audioPlayer.sleepTimer' })}
+              </p>
+              {sleepRemainingText && (
+                <span className="text-xs font-semibold text-gold tabular-nums bg-gold/10 px-2 py-0.5 rounded-full">
+                  {sleepRemainingText}
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSleepTimer(null);
+                setSleepOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors ${
+                sleepTimerOption === null
+                  ? 'bg-gold/10 text-gold-dark font-medium'
+                  : 'text-text/80 hover:bg-surface-highlight'
+              }`}
+            >
+              <span>{intl.formatMessage({ id: 'audioPlayer.sleepTimerOff' })}</span>
+              {sleepTimerOption === null && <CheckIcon className="w-4 h-4 text-gold-dark" />}
+            </button>
+
+            {([15, 30, 45, 60] as const).map((mins) => {
+              const isSelected = sleepTimerOption === mins;
+              return (
+                <button
+                  key={mins}
+                  type="button"
+                  onClick={() => {
+                    setSleepTimer(mins);
+                    setSleepOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors ${
+                    isSelected
+                      ? 'bg-gold/10 text-gold-dark font-medium'
+                      : 'text-text/80 hover:bg-surface-highlight'
+                  }`}
+                >
+                  <span>
+                    {intl.formatMessage({ id: 'audioPlayer.sleepTimerMinutes' }, { minutes: mins })}
+                  </span>
+                  {isSelected && <CheckIcon className="w-4 h-4 text-gold-dark" />}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={() => {
+                setSleepTimer('end-of-surah');
+                setSleepOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors ${
+                sleepTimerOption === 'end-of-surah'
+                  ? 'bg-gold/10 text-gold-dark font-medium'
+                  : 'text-text/80 hover:bg-surface-highlight'
+              }`}
+            >
+              <span>{intl.formatMessage({ id: 'audioPlayer.sleepTimerEndSurah' })}</span>
+              {sleepTimerOption === 'end-of-surah' && <CheckIcon className="w-4 h-4 text-gold-dark" />}
+            </button>
           </div>
         )}
 
@@ -359,6 +551,35 @@ export function QuranAudioPlayer() {
                   <SingleVerseIcon className="w-5 h-5" />
                   {singleMode && (
                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />
+                  )}
+                </button>
+
+                {/* Sleep Timer */}
+                <button
+                  type="button"
+                  onClick={toggleSleep}
+                  aria-label={intl.formatMessage({ id: 'audioPlayer.sleepTimer' })}
+                  aria-expanded={sleepOpen}
+                  title={
+                    sleepTimerOption === 'end-of-surah'
+                      ? intl.formatMessage({ id: 'audioPlayer.sleepTimerEndSurah' })
+                      : sleepRemainingText
+                      ? `${intl.formatMessage({ id: 'audioPlayer.sleepTimer' })}: ${sleepRemainingText}`
+                      : intl.formatMessage({ id: 'audioPlayer.sleepTimer' })
+                  }
+                  className={`relative p-2 rounded-full transition-colors ${
+                    sleepOpen || sleepTimerOption !== null
+                      ? 'text-[#e3c989] bg-gold/15'
+                      : 'text-[#d6cfbf] hover:text-[#e3c989] hover:bg-gold/10'
+                  }`}
+                >
+                  <MoonIcon className="w-5 h-5" />
+                  {sleepTimerOption !== null && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-4 px-1 rounded-full bg-gold text-[#1a1814] text-[9px] font-bold flex items-center justify-center tabular-nums ring-2 ring-[#1a1814]/80">
+                      {sleepTimerOption === 'end-of-surah'
+                        ? 'Surah'
+                        : sleepRemainingText || `${sleepTimerOption}m`}
+                    </span>
                   )}
                 </button>
 

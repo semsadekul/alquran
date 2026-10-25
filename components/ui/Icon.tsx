@@ -420,14 +420,58 @@ export function SingleVerseIcon(props: IconProps) {
   );
 }
 
+export function ShareIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 4v11" />
+      <path d="M8 8l4-4 4 4" />
+      <path d="M5 13v6h14v-6" />
+    </svg>
+  );
+}
+
+export function ImageIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="3" y="4.5" width="18" height="15" rx="2" />
+      <circle cx="8.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+      <path d="m4 17.5 5-5 4 4 3-2.5 4 3.5" />
+    </svg>
+  );
+}
+
+export function CopyIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M15 5H6a1 1 0 0 0-1 1v9" />
+    </svg>
+  );
+}
+
+export function HadithBookIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+      <path d="M6 6h10" />
+      <path d="M6 10h10" />
+      <path d="M6 14h6" />
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    </svg>
+  );
+}
+
 export const NAV_ICONS = {
   Home: HomeIcon,
   Surah: BookOpenIcon,
+  Hadith: HadithBookIcon,
   Hifz: StarIcon,
   Library: ScrollIcon,
   Duas: HandHeartIcon,
   Stats: BarChartIcon,
   Settings: SettingsIcon,
+  Search: SearchIcon,
+  More: MoreHorizontalIcon,
 } as const;
 
 

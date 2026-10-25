@@ -33,7 +33,7 @@ export default function DuasPage() {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <div className="ornamental-divider text-xs text-gold mb-3">
+        <div className="ornamental-divider text-xs text-gold-dark mb-3">
           <span className="text-xs">{intl.formatMessage({ id: 'duas.dailySupplications' })}</span>
         </div>
         <h1 className="font-display text-2xl sm:text-3xl font-semibold text-text">

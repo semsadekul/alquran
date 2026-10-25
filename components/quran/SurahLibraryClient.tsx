@@ -43,7 +43,7 @@ export function SurahLibraryClient({ surahs }: { surahs: Surah[] }) {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <header className="text-center lg:text-left">
-        <div className="inline-block px-4 py-1 rounded-full bg-surface-highlight border border-border-subtle mb-4">
+        <div className="inline-block px-4 py-1 rounded-full bg-surface-highlight border border-gold-line mb-4">
           <p className="text-sm font-medium text-gold-dark">
             {intl.formatMessage({ id: 'library.title' })}
           </p>
@@ -78,7 +78,7 @@ export function SurahLibraryClient({ surahs }: { surahs: Surah[] }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={cn(
-              'w-full pl-10 pr-4 py-2.5 rounded-xl border bg-surface text-text placeholder-text-muted',
+              'w-full pl-10 pr-4 py-2.5 rounded-xl border border-gold-line bg-surface text-text placeholder-text-muted',
               'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50',
               'transition-all duration-200'
             )}
@@ -104,8 +104,8 @@ export function SurahLibraryClient({ surahs }: { surahs: Surah[] }) {
               className={cn(
                 'px-3 py-2 rounded-lg text-sm font-medium capitalize transition-all duration-200',
                 filter === option
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-surface text-text-muted border border-border hover:bg-surface-highlight'
+                  ? 'bg-forest text-forest-ink shadow-sm'
+                  : 'bg-surface text-text-muted border border-gold-line hover:bg-surface-highlight'
               )}
             >
               {intl.formatMessage({ id: `library.filter.${option}` })}
@@ -139,7 +139,7 @@ export function SurahLibraryClient({ surahs }: { surahs: Surah[] }) {
                     <div
                       className={cn(
                         'w-12 h-12 rounded-md flex items-center justify-center font-semibold text-lg transition-transform duration-300 group-hover:scale-[1.03]',
-                        'bg-gradient-to-br from-gold-light via-gold to-gold-dark text-[#1a1814]'
+                        'bg-forest text-gold-light'
                       )}
                     >
                       {surah.number}

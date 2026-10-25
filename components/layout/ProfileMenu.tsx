@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useIntl } from 'react-intl';
 import { useAppAuth } from '@/components/providers/AuthProvider';
+import { useSync } from '@/components/providers/SyncProvider';
 import {
   ChevronDownIcon,
   BarChartIcon,
@@ -39,6 +40,14 @@ function readStats(): StatsSnapshot {
     return { streakDays: 0, totalReads: 0, totalVerses: 0, dailyGoal: 5, todayReads: 0 };
   }
 }
+
+const DEFAULT_STATS: StatsSnapshot = {
+  streakDays: 0,
+  totalReads: 0,
+  totalVerses: 0,
+  dailyGoal: 5,
+  todayReads: 0,
+};
 
 function UserAvatar({
   imageUrl,
@@ -76,12 +85,20 @@ export function ProfileMenu() {
   const intl = useIntl();
   const { enabled, isLoaded, isSignedIn, user, signOut, openUserProfile } = useAppAuth();
   const [open, setOpen] = useState(false);
-  const [stats, setStats] = useState<StatsSnapshot>(readStats());
+  const [mounted, setMounted] = useState(false);
+  const [stats, setStats] = useState<StatsSnapshot>(DEFAULT_STATS);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     setStats(readStats());
-  }, [open]);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      setStats(readStats());
+    }
+  }, [open, mounted]);
 
   // Close on outside click
   useEffect(() => {
@@ -105,6 +122,7 @@ export function ProfileMenu() {
     return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
+  const { status, syncNow } = useSync();
   const done = stats.todayReads;
   const goal = stats.dailyGoal;
   const pct = Math.min(100, (done / goal) * 100);
@@ -114,6 +132,7 @@ export function ProfileMenu() {
     <div ref={ref} className="relative">
       <button
         type="button"
+        suppressHydrationWarning
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="true"
         aria-expanded={open}
@@ -124,7 +143,7 @@ export function ProfileMenu() {
         ].join(' ')}
       >
         {/* Avatar / progress badge */}
-        {isSignedIn && user ? (
+        {mounted && isSignedIn && user ? (
           <span className="ring-2 ring-gold/40 rounded-full transition-transform duration-200">
             <UserAvatar
               imageUrl={user.imageUrl}
@@ -132,18 +151,19 @@ export function ProfileMenu() {
               size="sm"
             />
           </span>
+        ) : mounted && stats.streakDays > 0 ? (
+          <span
+            aria-hidden="true"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-transform duration-200 shadow-sm bg-gold border-gold-light text-[#1a1814] scale-105"
+          >
+            🔥{stats.streakDays}
+          </span>
         ) : (
           <span
             aria-hidden="true"
-            className={[
-              'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold',
-              'border transition-transform duration-200 shadow-sm',
-              stats.streakDays > 0
-                ? 'bg-gold border-gold-light text-[#1a1814] scale-105'
-                : 'bg-surface-highlight border-border-subtle text-gold-dark',
-            ].join(' ')}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-transform duration-200 shadow-sm bg-surface-highlight border-border-subtle text-gold-dark"
           >
-            {stats.streakDays > 0 ? `🔥${stats.streakDays}` : '📖'}
+            📖
           </span>
         )}
         <ChevronDownIcon
@@ -227,15 +247,15 @@ export function ProfileMenu() {
           <div className="space-y-2.5 mb-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-text-muted">🔥 Streak</span>
-              <span className="text-sm font-semibold text-text">{stats.streakDays} days</span>
+              <span suppressHydrationWarning className="text-sm font-semibold text-text">{stats.streakDays} days</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-text-muted">📖 Total reads</span>
-              <span className="text-sm font-semibold text-text">{stats.totalReads}</span>
+              <span suppressHydrationWarning className="text-sm font-semibold text-text">{stats.totalReads}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-text-muted">📜 Verses</span>
-              <span className="text-sm font-semibold text-text">{stats.totalVerses}</span>
+              <span suppressHydrationWarning className="text-sm font-semibold text-text">{stats.totalVerses}</span>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -254,6 +274,44 @@ export function ProfileMenu() {
               </div>
             </div>
           </div>
+
+          {isSignedIn && (
+            <div className="flex items-center justify-between text-xs px-2.5 py-1.5 rounded-lg bg-surface-highlight/70 border border-border-subtle mb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={[
+                    'w-2 h-2 rounded-full shrink-0',
+                    status === 'synced'
+                      ? 'bg-emerald-500'
+                      : status === 'syncing'
+                        ? 'bg-amber-500 animate-pulse'
+                        : status === 'error'
+                          ? 'bg-rose-500'
+                          : 'bg-text-muted',
+                  ].join(' ')}
+                />
+                <span className="text-text-muted text-[11px] truncate">
+                  {status === 'synced'
+                    ? 'Cloud in sync'
+                    : status === 'syncing'
+                      ? 'Syncing to cloud...'
+                      : status === 'offline'
+                        ? 'Offline mode'
+                        : status === 'error'
+                          ? 'Sync error'
+                          : 'Cloud ready'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => syncNow()}
+                disabled={status === 'syncing'}
+                className="text-gold-dark hover:text-gold text-[11px] font-medium transition-colors disabled:opacity-50 shrink-0 ml-1"
+              >
+                {status === 'syncing' ? '...' : 'Sync'}
+              </button>
+            </div>
+          )}
 
           <hr className="border-border-subtle mb-3" />
 

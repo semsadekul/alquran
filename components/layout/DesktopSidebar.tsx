@@ -73,7 +73,7 @@ export function DesktopSidebar() {
       </div>
 
       {/* Primary nav */}
-      <nav className="flex-1 px-3 py-5 overflow-y-auto" aria-label="Primary">
+      <nav className="flex-1 px-3 py-5 overflow-y-auto" aria-label={intl.formatMessage({ id: 'nav.sections' })}>
         <p className="eyebrow px-3 mb-3">
           {intl.formatMessage({ id: 'topbar.section' })}
         </p>
@@ -82,6 +82,9 @@ export function DesktopSidebar() {
             const Icon = SECTION_ICONS[item.key];
             const active = isActive(item.href);
             const label = intl.formatMessage({ id: `nav.${item.key.toLowerCase()}` });
+            const isHadith = item.key === 'Hadith';
+            const hadithActive = pathname.startsWith('/hadith');
+
             return (
               <li key={item.key}>
                 <Link
@@ -111,6 +114,41 @@ export function DesktopSidebar() {
                     <span className="bangla-ui ml-auto text-xs text-ink-4">{item.bengali}</span>
                   )}
                 </Link>
+
+                {/* Hadith 7 Major Collections sub-links when inside Hadith */}
+                {isHadith && hadithActive && (
+                  <ul className="mt-1 ml-6 pl-2 border-l border-border-subtle space-y-0.5">
+                    {[
+                      { id: 'bukhari', nameBn: 'সহীহ বুখারী', nameEn: 'Sahih al-Bukhari' },
+                      { id: 'muslim', nameBn: 'সহীহ মুসলিম', nameEn: 'Sahih Muslim' },
+                      { id: 'abudawud', nameBn: 'সুনান আবূ দাঊদ', nameEn: 'Sunan Abi Dawud' },
+                      { id: 'tirmidhi', nameBn: 'জামে আত-তিরমিযী', nameEn: 'Jami` at-Tirmidhi' },
+                      { id: 'nasai', nameBn: 'সুনান আন-নাসায়ী', nameEn: 'Sunan an-Nasa\'i' },
+                      { id: 'ibnmajah', nameBn: 'সুনান ইবনে মাজাহ', nameEn: 'Sunan Ibn Majah' },
+                      { id: 'malik', nameBn: 'মুয়াত্তা মালিক', nameEn: 'Muwatta Malik' },
+                    ].map((book) => {
+                      const bookHref = `/hadith/${book.id}`;
+                      const isBookActive = pathname === bookHref || pathname.startsWith(`${bookHref}/`);
+                      return (
+                        <li key={book.id}>
+                          <Link
+                            href={bookHref}
+                            className={[
+                              'block px-2.5 py-1.5 text-xs rounded transition-colors',
+                              isBookActive
+                                ? 'text-gold-dark font-medium bg-gold/10'
+                                : 'text-ink-3 hover:text-ink-1 hover:bg-surface-highlight',
+                            ].join(' ')}
+                          >
+                            <span className="truncate block">
+                              {locale === 'bn' ? book.nameBn : book.nameEn}
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </li>
             );
           })}

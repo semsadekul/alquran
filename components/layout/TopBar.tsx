@@ -13,6 +13,7 @@ const pageLabels: Record<string, string> = {
   '/quran/library': 'pageSurahs',
   '/quran/hifz': 'pageHifz',
   '/quran/surahs': 'pageSurah',
+  '/hadith': 'pageHadith',
   '/search': 'pageSearch',
   '/duas': 'pageDuas',
   '/stats': 'pageStats',
@@ -20,9 +21,20 @@ const pageLabels: Record<string, string> = {
 };
 
 function titleFromPath(pathname: string, intl: { formatMessage: ({ id }: { id: string }) => string }): string {
-  // Check each key directly first
-  if (pathname === '/' || pathname === '') return intl.formatMessage({ id: 'pageHome' });
+  if (!pathname || pathname === '/' || pathname === '') return intl.formatMessage({ id: 'pageHome' });
   
+  // Explicit Hadith section matches
+  if (pathname.startsWith('/hadith/bukhari')) return 'সহীহ আল-বুখারী';
+  if (pathname.startsWith('/hadith/muslim')) return 'সহীহ মুসলিম';
+  if (pathname.startsWith('/hadith/abudawud')) return 'সুনান আবূ দাঊদ';
+  if (pathname.startsWith('/hadith/tirmidhi')) return 'জামে আত-তিরমিযী';
+  if (pathname.startsWith('/hadith/nasai')) return 'সুনান আন-নাসায়ী';
+  if (pathname.startsWith('/hadith/ibnmajah')) return 'সুনান ইবনে মাজাহ';
+  if (pathname.startsWith('/hadith/malik')) return 'মুয়াত্তা মালিক';
+  if (pathname.startsWith('/hadith/nawawi')) return 'চল্লিশ হাদিস (ইমাম নববী)';
+  if (pathname.startsWith('/hadith/saved')) return 'সংরক্ষিত হাদিস';
+  if (pathname.startsWith('/hadith')) return intl.formatMessage({ id: 'pageHadith' });
+
   // Check for exact prefix matches in order
   for (const [prefix, messageId] of Object.entries(pageLabels)) {
     if (prefix !== '/' && pathname.startsWith(prefix)) {
@@ -40,11 +52,18 @@ export function TopBar() {
   const intl = useIntl();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const title = titleFromPath(pathname, intl);
+  const [title, setTitle] = useState('');
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Compute the title only after mount to avoid hydration mismatch
+  useEffect(() => {
+    if (mounted) {
+      setTitle(titleFromPath(pathname || '', intl));
+    }
+  }, [mounted, pathname, intl]);
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-surface/85 backdrop-blur-md border-b border-border-subtle">
@@ -53,10 +72,12 @@ export function TopBar() {
         <div className="flex items-center gap-3 min-w-0">
           <div className="hidden sm:block">
             <p className="eyebrow leading-none">
-              {intl.formatMessage({ id: 'topbar.section' })}
+              {mounted ? intl.formatMessage({ id: 'topbar.section' }) : '\u00A0'}
             </p>
-            <h2 className="font-display text-lg sm:text-xl font-semibold text-text leading-tight mt-1 truncate">
-              {title}
+            <h2
+              className="font-display text-lg sm:text-xl font-semibold text-text leading-tight mt-1 truncate"
+            >
+              {title || '\u00A0'}
             </h2>
           </div>
           <div className="sm:hidden">

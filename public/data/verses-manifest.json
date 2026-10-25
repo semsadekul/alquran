@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-10-25T07:57:18.913Z",
+  "source": "https://api.alquran.cloud",
+  "editions": {
+    "arabic": "quran-uthmani",
+    "bangla": "bn.bengali",
+    "english": "en.sahih",
+    "transliteration": "en.transliteration",
+    "banglaTransliteration": "bn.pronunciation"
+  },
+  "surahCount": 114,
+  "ayahCount": 6236,
+  "corpusHash": "cda844ea2a877ef15e600a8d99c7b180542e020b7d55d38b474a237a91c76fe9"
+}

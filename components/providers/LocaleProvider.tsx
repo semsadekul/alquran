@@ -23,15 +23,17 @@ const LOCALES: Record<Locale, { name: string; dir: 'ltr' | 'rtl' }> = {
 };
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en');
+  // Bangla is the default for first-time visitors; a stored choice overrides it.
+  const [locale, setLocaleState] = useState<Locale>('bn');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem('alquran_locale') as Locale | null;
-    if (stored && stored in LOCALES) {
-      setLocaleState(stored);
-    }
+    const next: Locale = stored && stored in LOCALES ? stored : 'bn';
+    setLocaleState(next);
+    document.documentElement.lang = next;
+    document.documentElement.dir = LOCALES[next].dir;
   }, []);
 
   const setLocale = (newLocale: Locale) => {

@@ -1,10 +1,13 @@
 import {
   HomeIcon,
   BookOpenIcon,
+  HadithBookIcon,
   StarIcon,
   HandHeartIcon,
   BarChartIcon,
   SettingsIcon,
+  SearchIcon,
+  MoreHorizontalIcon,
 } from '@/components/ui/Icon';
 
 /**
@@ -16,7 +19,7 @@ import {
  */
 export interface NavItem {
   /** Display key (matches NAV_ICONS map). */
-  key: 'Home' | 'Surah' | 'Hifz' | 'Duas' | 'Stats' | 'Settings';
+  key: 'Home' | 'Surah' | 'Hadith' | 'Search' | 'Hifz' | 'Duas' | 'Stats' | 'Settings' | 'More';
   href: string;
   label: string;
   bengali: string;
@@ -48,6 +51,23 @@ export const NAV_ITEMS: NavItem[] = [
     description: 'Browse all 114 chapters',
   },
   {
+    key: 'Hadith',
+    href: '/hadith',
+    label: 'Hadith',
+    bengali: 'হাদীস',
+    accent: 'amber',
+    description: '36,390 Prophetic traditions',
+  },
+  {
+    key: 'Search',
+    href: '/search',
+    label: 'Search',
+    bengali: 'খুঁজুন',
+    accent: 'purple',
+    mobilePrimary: true,
+    description: 'Find an ayah, surah or reference',
+  },
+  {
     key: 'Hifz',
     href: '/quran/hifz',
     label: 'Hifz',
@@ -62,7 +82,6 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Duas',
     bengali: 'দোয়া',
     accent: 'amber',
-    mobilePrimary: true,
     description: 'Daily supplications',
   },
   {
@@ -80,6 +99,15 @@ export const NAV_ITEMS: NavItem[] = [
     bengali: 'সেটিংস',
     description: 'Theme, language, data',
   },
+  {
+    key: 'More',
+    href: '/more',
+    label: 'More',
+    bengali: 'আরও',
+    accent: 'cyan',
+    mobilePrimary: true,
+    description: 'Duas, stats, settings and credits',
+  },
 ];
 
 export const MOBILE_NAV_ITEMS = NAV_ITEMS.filter((item) => item.mobilePrimary);
@@ -88,8 +116,11 @@ export const MOBILE_NAV_ITEMS = NAV_ITEMS.filter((item) => item.mobilePrimary);
 export const SECTION_ICONS = {
   Home: HomeIcon,
   Surah: BookOpenIcon,
+  Hadith: HadithBookIcon,
+  Search: SearchIcon,
   Hifz: StarIcon,
   Duas: HandHeartIcon,
   Stats: BarChartIcon,
   Settings: SettingsIcon,
+  More: MoreHorizontalIcon,
 } as const;

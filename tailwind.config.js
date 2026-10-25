@@ -39,6 +39,16 @@ module.exports = {
         'gold-light': 'var(--gold-light)',
         'gold-soft': 'var(--gold-soft)',
 
+        // Deep forest — high-emphasis hero blocks
+        forest: 'var(--forest)',
+        'forest-2': 'var(--forest-2)',
+        'forest-ink': 'var(--forest-ink)',
+
+        // Gold hairlines / veils (alpha baked into the token)
+        'gold-line': 'var(--gold-line)',
+        'gold-line-strong': 'var(--gold-line-strong)',
+        'gold-veil': 'var(--gold-veil)',
+
         // Semantic / primary (aliased onto the cream/gold palette)
         primary: 'var(--primary)',
         'primary-light': 'var(--primary-light)',
@@ -73,8 +83,19 @@ module.exports = {
       fontFamily: {
         arabic: ['var(--font-arabic)', 'Noto Naskh Arabic', 'serif'],
         bengali: ['var(--font-bengali-ui)', 'Noto Sans Bengali', 'sans-serif'],
+        'bengali-display': [
+          'var(--font-bangla-display)',
+          'Noto Serif Bengali',
+          'Hind Siliguri',
+          'serif',
+        ],
         sans: ['var(--font-ui)'],
         display: ['var(--font-display)', 'Georgia', 'serif'],
+      },
+      borderRadius: {
+        tile: '18px',
+        card: '22px',
+        'card-lg': '24px',
       },
       boxShadow: {
         soft: 'var(--shadow-soft)',

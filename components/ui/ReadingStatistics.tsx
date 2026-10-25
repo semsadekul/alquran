@@ -5,39 +5,34 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { ProgressRing } from '../ui/ProgressRing';
 import { getSurah } from '../../lib/data/quran';
-
-interface ReadingStats {
-  totalReads: number;
-  totalVerses: number;
-  totalSurahs: number;
-  totalMinutes: number;
-  lastReadDate: number | null;
-  weekData: { date: string; verses: number }[];
-  favoriteSurahs: { number: number; name: string; count: number }[];
-  streakDays: number;
-  dailyGoal: number;
-}
+import { readStats, setDailyGoal, type ReadingStats, type GoalUnit } from '../../lib/storage';
 
 export function ReadingStatistics() {
   const [stats, setStats] = useState<ReadingStats | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    
-    // Load reading statistics from localStorage
-    const stored = localStorage.getItem('alquran_reading_stats');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setStats(parsed);
-      } catch (e) {
-        console.error('Failed to parse reading stats', e);
-      }
-    }
+    setStats(readStats());
+
+    const handleUpdated = () => {
+      setStats(readStats());
+    };
+    window.addEventListener('alquran_stats_updated', handleUpdated);
+    return () => window.removeEventListener('alquran_stats_updated', handleUpdated);
   }, []);
 
   if (!mounted || !stats) return null;
+
+  const currentUnit = stats.dailyGoalUnit || 'ayahs';
+  const currentGoal = stats.dailyGoal || 5;
+  const shields = stats.graceShields ?? 1;
+
+  const handleSelectGoal = (val: number, unit: GoalUnit) => {
+    setDailyGoal(val, unit);
+    setEditingGoal(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -46,38 +41,47 @@ export function ReadingStatistics() {
         <StatCard
           icon="📖"
           label="Total Reads"
-          value={stats.totalReads.toLocaleString()}
+          value={(stats.totalReads || 0).toLocaleString()}
         />
         <StatCard
           icon="✨"
           label="Verses Read"
-          value={stats.totalVerses.toLocaleString()}
+          value={(stats.totalVerses || 0).toLocaleString()}
         />
         <StatCard
           icon="📿"
           label="Surahs Completed"
-          value={`${stats.totalSurahs}/114`}
+          value={`${stats.totalSurahs || 0}/114`}
         />
         <StatCard
           icon="⏱️"
           label="Time Spent"
-          value={formatMinutes(stats.totalMinutes)}
+          value={formatMinutes(stats.totalMinutes || 0)}
         />
       </div>
 
-      {/* Reading Streak */}
+      {/* Reading Streak & Daily Goal */}
       <Card variant="elevated" className="p-6 bg-gradient-to-br from-gold/10 to-gold-dark/10 border-gold/20">
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div className="flex items-center gap-4">
             <ProgressRing
-              value={(stats.streakDays / 30) * 100}
+              value={((stats.streakDays || 0) / 30) * 100}
               size="sm"
             />
             <div>
-              <h3 className="text-xl font-bold text-text">{stats.streakDays} Day Streak</h3>
-              <p className="text-sm text-text/70">Keep reading daily!</p>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-text">{stats.streakDays || 0} Day Streak</h3>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-forest/10 dark:bg-gold-veil text-gold-dark font-medium flex items-center gap-1">
+                  🛡️ {shields}/3 Shields
+                </span>
+              </div>
+              <p className="text-xs text-text-muted mt-0.5">
+                {shields > 0
+                  ? 'Your streak is protected by Grace Shield.'
+                  : 'Read 7 days in a row to earn a Grace Shield.'}
+              </p>
               <div className="flex gap-1 mt-2">
-                {generateWeekDots(stats.streakDays).map((active, i) => (
+                {generateWeekDots(stats.streakDays || 0).map((active, i) => (
                   <div
                     key={i}
                     className={`w-2 h-2 rounded-full ${active ? 'bg-gold' : 'bg-gold/20'}`}
@@ -86,18 +90,60 @@ export function ReadingStatistics() {
               </div>
             </div>
           </div>
+
           <div className="sm:ml-auto text-center sm:text-right">
-            <p className="text-sm text-text/70 mb-1">Daily Goal</p>
-            <p className="text-2xl font-bold text-text">{Math.min(stats.totalVerses, stats.dailyGoal)}/{stats.dailyGoal} verses</p>
+            <div className="flex items-center justify-center sm:justify-end gap-2 mb-1">
+              <p className="text-xs text-text/70 uppercase tracking-wider">Daily Goal</p>
+              <button
+                type="button"
+                onClick={() => setEditingGoal(!editingGoal)}
+                className="text-xs text-gold-dark font-medium hover:underline"
+              >
+                {editingGoal ? 'Done' : 'Change'}
+              </button>
+            </div>
+            <p className="text-2xl font-bold text-text">
+              {currentGoal} {currentUnit}
+            </p>
           </div>
         </div>
+
+        {/* Goal Selector Drawer */}
+        {editingGoal && (
+          <div className="mt-4 pt-4 border-t border-gold/20 animate-fade-in">
+            <p className="text-xs text-text-muted mb-2 font-medium">Select your daily reading goal:</p>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {[
+                { val: 5, unit: 'ayahs' as GoalUnit, label: '5 Ayahs' },
+                { val: 10, unit: 'ayahs' as GoalUnit, label: '10 Ayahs' },
+                { val: 20, unit: 'ayahs' as GoalUnit, label: '20 Ayahs' },
+                { val: 10, unit: 'minutes' as GoalUnit, label: '10 Mins' },
+                { val: 20, unit: 'minutes' as GoalUnit, label: '20 Mins' },
+                { val: 4, unit: 'pages' as GoalUnit, label: '4 Pages' },
+              ].map((opt) => (
+                <button
+                  key={`${opt.val}_${opt.unit}`}
+                  type="button"
+                  onClick={() => handleSelectGoal(opt.val, opt.unit)}
+                  className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                    currentGoal === opt.val && currentUnit === opt.unit
+                      ? 'bg-forest text-forest-ink border-transparent shadow-sm'
+                      : 'border-gold-line bg-surface text-text hover:bg-surface-highlight'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Weekly Activity */}
       <Card variant="elevated" className="p-6">
         <h3 className="text-lg font-bold text-text mb-4">This Week</h3>
         <div className="grid grid-cols-7 gap-2">
-          {stats.weekData.map((day, index) => (
+          {(stats.weekData || []).map((day, index) => (
             <div key={index} className="text-center">
               <div className="text-xs text-text/60 mb-1">
                 {day.date}
@@ -122,7 +168,7 @@ export function ReadingStatistics() {
       <Card variant="elevated" className="p-6">
         <h3 className="text-lg font-bold text-text mb-4">Most Read Surahs</h3>
         <div className="space-y-3">
-          {stats.favoriteSurahs.slice(0, 5).map((surah, index) => (
+          {(stats.favoriteSurahs || []).slice(0, 5).map((surah, index) => (
             <div key={surah.number} className="flex items-center gap-3">
               <Badge tone="gold" size="sm">{index + 1}</Badge>
               <div className="flex-1">
@@ -146,32 +192,32 @@ export function ReadingStatistics() {
           <MilestoneBadge
             icon="🎯"
             label="First Read"
-            achieved={stats.totalReads > 0}
+            achieved={(stats.totalReads || 0) > 0}
           />
           <MilestoneBadge
             icon="📚"
             label="100 Verses"
-            achieved={stats.totalVerses >= 100}
+            achieved={(stats.totalVerses || 0) >= 100}
           />
           <MilestoneBadge
             icon="🌟"
             label="Complete Juz"
-            achieved={stats.totalVerses >= 240}
+            achieved={(stats.totalVerses || 0) >= 240}
           />
           <MilestoneBadge
             icon="🔥"
             label="7-Day Streak"
-            achieved={stats.streakDays >= 7}
+            achieved={(stats.streakDays || 0) >= 7}
           />
           <MilestoneBadge
             icon="💎"
             label="30-Day Streak"
-            achieved={stats.streakDays >= 30}
+            achieved={(stats.streakDays || 0) >= 30}
           />
           <MilestoneBadge
             icon="🏆"
             label="Full Quran"
-            achieved={stats.totalVerses >= 6236}
+            achieved={(stats.totalVerses || 0) >= 6236}
           />
         </div>
       </Card>

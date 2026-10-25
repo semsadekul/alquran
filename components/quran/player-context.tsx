@@ -56,6 +56,10 @@ export interface PlayerContextValue {
   setSingleMode: (b: boolean) => void;
   setVolume: (v: number) => void;
   setMuted: (b: boolean) => void;
+  // Sleep Timer (minutes | 'end-of-surah' | null)
+  sleepTimerOption: number | 'end-of-surah' | null;
+  sleepTimerEndsAt: number | null;
+  setSleepTimer: (option: number | 'end-of-surah' | null) => void;
 }
 
 export const PlayerContext = createContext<PlayerContextValue | null>(null);

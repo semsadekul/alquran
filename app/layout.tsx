@@ -1,14 +1,17 @@
 import type React from 'react';
-import { Inter, Lora, Amiri, Hind_Siliguri } from 'next/font/google';
+import { Inter, Lora, Amiri, Hind_Siliguri, Noto_Serif_Bengali } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '../components/providers/ThemeProvider';
 import { LocaleProvider } from '../components/providers/LocaleProvider';
 import { ServiceWorkerProvider } from '../components/providers/ServiceWorkerProvider';
 import { AuthProvider } from '../components/providers/AuthProvider';
+import { SyncProvider } from '../components/providers/SyncProvider';
 import { PlayerProvider } from '../components/quran/PlayerProvider';
 import { ToastProvider } from '../components/ui/Toast';
 import { DesktopSidebar } from '../components/layout/DesktopSidebar';
+import { getSiteUrl } from '../lib/seo';
 import { MobileNav } from '../components/layout/MobileNav';
+import { CommandPalette } from '../components/layout/CommandPalette';
 import { TopBar } from '../components/layout/TopBar';
 
 const inter = Inter({
@@ -38,26 +41,39 @@ const hindSiliguri = Hind_Siliguri({
   display: 'swap',
 });
 
+// Serif Bangla for display headings (the design pairs Noto Serif Bengali
+// with Amiri; Hind Siliguri stays the UI face).
+const notoSerifBengali = Noto_Serif_Bengali({
+  subsets: ['bengali'],
+  weight: ['400', '600'],
+  variable: '--font-bangla-serif',
+  display: 'swap',
+});
+
 export const metadata = {
-  // Set NEXT_PUBLIC_SITE_URL at deploy time (fallback is a placeholder).
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://al-quran.example.com'
-  ),
+  // Canonical origin — see lib/seo.ts (NEXT_PUBLIC_SITE_URL at deploy time).
+  metadataBase: getSiteUrl(),
   title: 'Al Quran — আল কুরআন',
   description:
     'Read, understand, and memorize the Holy Quran with elegant translations in Arabic, Bengali, and English.',
   manifest: '/manifest.webmanifest',
+  alternates: {
+    canonical: '/',
+  },
   appleWebApp: {
     capable: true,
     title: 'Al Quran',
     statusBarStyle: 'default',
   },
+  // The share image is generated as a real PNG by app/opengraph-image.tsx —
+  // many chat and social previewers do not render SVG.
   openGraph: {
     title: 'Al Quran — আল কুরআন',
     description:
       'Read, understand, and memorize the Holy Quran with elegant translations.',
+    siteName: 'Al Quran',
+    url: '/',
     type: 'website',
-    images: ['/og-image.svg'],
   },
   twitter: {
     card: 'summary_large_image',
@@ -79,31 +95,39 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`min-h-screen bg-background text-text antialiased ${inter.variable} ${lora.variable} ${amiri.variable} ${hindSiliguri.variable}`}
-      >
+    // Font variables live on <html> (:root), not <body>: the --font-display and
+    // --font-bangla-display tokens in globals.css reference them from :root, and
+    // a custom property cannot resolve a variable defined on a descendant.
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${lora.variable} ${amiri.variable} ${hindSiliguri.variable} ${notoSerifBengali.variable}`}
+    >
+      <body className="min-h-screen bg-background text-text antialiased">
         <AuthProvider>
-          <ThemeProvider>
-            <LocaleProvider>
-              <ToastProvider>
-                <ServiceWorkerProvider>
-                  <PlayerProvider>
-                    <DesktopSidebar />
-                    <div className="lg:pl-64">
-                      <TopBar />
-                      <main className="min-h-screen pb-24 sm:pb-20 lg:pb-0">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                          {children}
-                        </div>
-                      </main>
-                    </div>
-                    <MobileNav />
-                  </PlayerProvider>
-                </ServiceWorkerProvider>
-              </ToastProvider>
-            </LocaleProvider>
-          </ThemeProvider>
+          <SyncProvider>
+            <ThemeProvider>
+              <LocaleProvider>
+                <ToastProvider>
+                  <ServiceWorkerProvider>
+                    <PlayerProvider>
+                      <DesktopSidebar />
+                      <div className="lg:pl-64">
+                        <TopBar />
+                        <main className="min-h-screen pb-24 sm:pb-20 lg:pb-0">
+                          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                            {children}
+                          </div>
+                        </main>
+                      </div>
+                      <MobileNav />
+                      <CommandPalette />
+                    </PlayerProvider>
+                  </ServiceWorkerProvider>
+                </ToastProvider>
+              </LocaleProvider>
+            </ThemeProvider>
+          </SyncProvider>
         </AuthProvider>
       </body>
     </html>

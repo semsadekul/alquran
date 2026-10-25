@@ -27,3 +27,16 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# InsForge / local agent state (never commit credentials)
+.insforge/
+.freebuff/
+.zcode/
+
+# Local logs, test dumps and scratch
+*.log
+*.pid
+scratch/
+screenshots/
+design-audit/
+*.png.bak

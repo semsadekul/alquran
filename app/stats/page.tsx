@@ -5,6 +5,8 @@ import { useIntl } from 'react-intl';
 import Link from 'next/link';
 import { ReadingStatistics } from '../../components/ui/ReadingStatistics';
 import { CalendarHeatmap } from '../../components/ui/CalendarHeatmap';
+import { HifzHeatmap } from '../../components/quran/HifzHeatmap';
+import { KhatamPlanner } from '../../components/quran/KhatamPlanner';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { readStats } from '../../lib/storage';
@@ -46,10 +48,18 @@ export default function StatsPage() {
         </p>
       </header>
 
+      {/* Khatam Planner */}
+      <div className="animate-slide-up">
+        <KhatamPlanner />
+      </div>
+
       {hasData ? (
         <>
           <div className="animate-slide-up stagger-1">
             <CalendarHeatmap weeks={26} />
+          </div>
+          <div className="animate-slide-up stagger-2">
+            <HifzHeatmap />
           </div>
           <ReadingStatistics />
         </>

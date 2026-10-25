@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import Link from 'next/link';
 import HifzSession from './HifzSession';
+import DailyReview from './DailyReview';
+import { HifzHeatmap } from '@/components/quran/HifzHeatmap';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { AchievementBadge } from '@/components/ui/AchievementBadge';
 import { Card } from '@/components/ui/Card';
@@ -183,9 +185,19 @@ export default function HifzDashboardPage() {
         </div>
       </Card>
 
+      {/* Spaced-repetition review queue — the daily habit surface */}
+      <section aria-label="Daily review">
+        <DailyReview />
+      </section>
+
       {/* Hifz session — the memorization tool, front and center */}
       <section aria-label="Hifz session">
         <HifzSession />
+      </section>
+
+      {/* 604-Page & 30-Juz Mastery Heatmap */}
+      <section aria-label="Mastery heatmap">
+        <HifzHeatmap />
       </section>
 
       {/* Achievements */}

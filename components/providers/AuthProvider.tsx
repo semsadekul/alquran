@@ -21,6 +21,8 @@ export interface AppAuthValue {
   signOut: () => Promise<void>;
   /** Opens the Clerk account-management modal/page. */
   openUserProfile: () => void;
+  /** Retrieves the active auth JWT for API/DB requests. */
+  getToken: () => Promise<string | null>;
 }
 
 const GuestAuth: AppAuthValue = {
@@ -30,6 +32,7 @@ const GuestAuth: AppAuthValue = {
   user: null,
   signOut: async () => {},
   openUserProfile: () => {},
+  getToken: async () => null,
 };
 
 const AppAuthContext = createContext<AppAuthValue>(GuestAuth);
@@ -61,7 +64,7 @@ export const clerkAppearance = {
  */
 function ClerkAuthBridge({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, user } = useUser();
-  const { signOut } = useAuth();
+  const { signOut, getToken } = useAuth();
   const { openUserProfile } = useClerk();
 
   const value = useMemo<AppAuthValue>(() => {
@@ -89,8 +92,9 @@ function ClerkAuthBridge({ children }: { children: ReactNode }) {
       user: appUser,
       signOut: () => signOut(),
       openUserProfile,
+      getToken: () => getToken(),
     };
-  }, [isLoaded, isSignedIn, user, signOut, openUserProfile]);
+  }, [isLoaded, isSignedIn, user, signOut, openUserProfile, getToken]);
 
   return <AppAuthContext.Provider value={value}>{children}</AppAuthContext.Provider>;
 }
