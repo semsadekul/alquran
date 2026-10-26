@@ -51,7 +51,7 @@ export default function DuasPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="Search duas"
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-surface text-text placeholder:text-text-muted focus:outline-none focus:border-gold/40 focus:ring-2 focus:ring-gold/20 transition-colors text-sm"
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-surface text-text placeholder:text-text-muted focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/25 transition-colors text-sm"
         />
         {search && (
           <button

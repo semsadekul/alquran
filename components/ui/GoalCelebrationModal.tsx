@@ -83,12 +83,14 @@ export function GoalCelebrationModal() {
 
           {/* Heading */}
           <h2 id="celebration-title" className="text-2xl font-bold text-text mb-1.5 font-display">
-            {payload?.shieldUsed ? 'Streak Protected!' : 'Alhamdulillah! Goal Reached'}
+            {payload?.shieldUsed
+              ? intl.formatMessage({ id: 'celebration.shieldTitle' })
+              : intl.formatMessage({ id: 'celebration.goalTitle' })}
           </h2>
           <p className="text-sm text-text-muted mb-5">
             {payload?.shieldUsed
-              ? 'Your Grace Shield protected your streak from breaking.'
-              : 'You have achieved your Quran reading goal for today.'}
+              ? intl.formatMessage({ id: 'celebration.shieldDesc' })
+              : intl.formatMessage({ id: 'celebration.goalDesc' })}
           </p>
 
           {/* Streak Banner */}
@@ -96,8 +98,12 @@ export function GoalCelebrationModal() {
             <div className="flex items-center gap-2">
               <FlameIcon className="w-6 h-6 text-gold-dark" />
               <div className="text-left">
-                <p className="text-xs text-text-muted uppercase font-sans">Current Streak</p>
-                <p className="text-xl font-bold text-text">{streak} Days</p>
+                <p className="text-xs text-text-muted uppercase font-sans">
+                  {intl.formatMessage({ id: 'celebration.currentStreak' })}
+                </p>
+                <p className="text-xl font-bold text-text">
+                  {intl.formatMessage({ id: 'celebration.days' }, { count: streak })}
+                </p>
               </div>
             </div>
 
@@ -106,7 +112,9 @@ export function GoalCelebrationModal() {
             <div className="flex items-center gap-2">
               <span className="text-xl">🛡️</span>
               <div className="text-left">
-                <p className="text-xs text-text-muted uppercase font-sans">Grace Shields</p>
+                <p className="text-xs text-text-muted uppercase font-sans">
+                  {intl.formatMessage({ id: 'celebration.graceShields' })}
+                </p>
                 <p className="text-xl font-bold text-text">{shields}/3</p>
               </div>
             </div>
@@ -118,9 +126,11 @@ export function GoalCelebrationModal() {
               أَحَبُّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ
             </p>
             <p className="italic text-text-muted">
-              &ldquo;The deeds most beloved to Allah are those that are consistent, even if small.&rdquo;
+              {intl.formatMessage({ id: 'celebration.hadith' })}
             </p>
-            <p className="text-[10px] text-text-muted/70 mt-0.5">— Sahih al-Bukhari</p>
+            <p className="text-[10px] text-text-muted/70 mt-0.5">
+              {intl.formatMessage({ id: 'celebration.hadithSource' })}
+            </p>
           </div>
 
           {/* Actions */}
@@ -130,7 +140,7 @@ export function GoalCelebrationModal() {
               onClick={() => setIsOpen(false)}
               className="flex-1 bg-gradient-to-r from-gold to-gold-dark text-white font-medium py-2.5"
             >
-              Continue Reading
+              {intl.formatMessage({ id: 'celebration.continue' })}
             </Button>
           </div>
         </div>

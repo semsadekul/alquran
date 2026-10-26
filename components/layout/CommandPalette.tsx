@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/ui/Modal';
 import { parseAyahReference } from '@/lib/reference';
@@ -10,6 +11,7 @@ import { parseAyahReference } from '@/lib/reference';
  * "2 255", "baqarah 255" or "২:২৫৫" and jumps straight to that verse.
  */
 export function CommandPalette() {
+  const intl = useIntl();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -45,7 +47,12 @@ export function CommandPalette() {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Go to ayah" size="sm">
+    <Modal
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      title={intl.formatMessage({ id: 'command.title' })}
+      size="sm"
+    >
       <form onSubmit={submit} className="space-y-3">
         <input
           autoFocus
@@ -55,21 +62,21 @@ export function CommandPalette() {
             setQuery(e.target.value);
             setError(false);
           }}
-          placeholder="2:255 · baqarah 255 · ২:২৫৫"
-          aria-label="Ayah reference"
+          placeholder={intl.formatMessage({ id: 'command.placeholder' })}
+          aria-label={intl.formatMessage({ id: 'command.refLabel' })}
           aria-invalid={error}
-          className="w-full px-3 py-2.5 rounded-xl border border-gold-line bg-surface text-text placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold/40"
+          className="w-full px-3 py-2.5 rounded-xl border border-gold-line bg-surface text-text placeholder-text-muted focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/25"
         />
         {error && (
           <p role="alert" className="text-sm text-error">
-            No such ayah. Try a form like 2:255.
+            {intl.formatMessage({ id: 'command.error' })}
           </p>
         )}
         <button
           type="submit"
           className="w-full py-2.5 rounded-xl bg-forest text-forest-ink font-medium"
         >
-          Go
+          {intl.formatMessage({ id: 'command.go' })}
         </button>
       </form>
     </Modal>

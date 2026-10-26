@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useIntl } from 'react-intl';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { BookmarkIcon, CopyIcon, ShareIcon, CheckIcon, ImageIcon, PlayIcon } from '@/components/ui/Icon';
 import { isHadithSaved, toggleSavedHadith, SavedHadithEntry } from '@/lib/hadith-storage';
@@ -37,6 +38,7 @@ export function HadithCard({
   arabicFontSize = 26,
   onBookmarkToggled,
 }: HadithCardProps) {
+  const intl = useIntl();
   const { locale } = useLocale();
   const [copied, setCopied] = useState(false);
   const [showEnglish, setShowEnglish] = useState(showEnglishDefault);
@@ -152,7 +154,15 @@ export function HadithCard({
         <div className="flex flex-wrap items-center gap-2">
           {/* Hadith Number Pill */}
           <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-surface-highlight text-gold-dark border border-gold-line font-mono">
-            {locale === 'bn' ? `হাদিস ${hadith.hadithNumber.toLocaleString('bn-BD')}` : `Hadith #${hadith.hadithNumber}`}
+            {intl.formatMessage(
+              { id: 'hadith.number' },
+              {
+                number:
+                  locale === 'bn'
+                    ? hadith.hadithNumber.toLocaleString('bn-BD')
+                    : hadith.hadithNumber,
+              }
+            )}
           </span>
 
           {/* Chapter Badge */}
@@ -170,7 +180,7 @@ export function HadithCard({
           {isSahihBook ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              {locale === 'bn' ? 'সহীহ (শতভাগ বিশুদ্ধ)' : 'Sahih'}
+              {intl.formatMessage({ id: 'hadith.gradeSahih' })}
             </span>
           ) : primaryGrade ? (
             <span
@@ -181,7 +191,11 @@ export function HadithCard({
                   ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'
                   : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
               }`}
-              title={primaryGrade.name ? `তাহকীক: ${primaryGrade.name}` : undefined}
+              title={
+                primaryGrade.name
+                  ? intl.formatMessage({ id: 'hadith.tahqik' }, { name: primaryGrade.name })
+                  : undefined
+              }
             >
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
               {primaryGrade.grade}
@@ -196,8 +210,16 @@ export function HadithCard({
             <button
               type="button"
               onClick={handleToggleBookmark}
-              aria-label={isSaved ? 'বুকমার্ক সরান' : 'বুকমার্ক করুন'}
-              title={isSaved ? 'বুকমার্ক সরান' : 'বুকমার্ক করুন'}
+              aria-label={
+                isSaved
+                  ? intl.formatMessage({ id: 'hadith.bookmarkRemove' })
+                  : intl.formatMessage({ id: 'hadith.bookmarkAdd' })
+              }
+              title={
+                isSaved
+                  ? intl.formatMessage({ id: 'hadith.bookmarkRemove' })
+                  : intl.formatMessage({ id: 'hadith.bookmarkAdd' })
+              }
               className={`p-1.5 rounded-md transition-colors ${
                 isSaved
                   ? 'text-gold bg-gold/15'
@@ -210,8 +232,8 @@ export function HadithCard({
             <button
               type="button"
               onClick={handleCopy}
-              aria-label="হাদিস কপি করুন"
-              title="হাদিস কপি করুন"
+              aria-label={intl.formatMessage({ id: 'hadith.copy' })}
+              title={intl.formatMessage({ id: 'hadith.copy' })}
               className="p-1.5 rounded-md text-text-muted hover:text-text hover:bg-surface-highlight transition-colors"
             >
               {copied ? (
@@ -224,8 +246,8 @@ export function HadithCard({
             <button
               type="button"
               onClick={() => setShareImageOpen(true)}
-              aria-label={locale === 'bn' ? 'ছবি কার্ড হিসেবে শেয়ার করুন' : 'Share as image'}
-              title={locale === 'bn' ? 'ছবি কার্ড হিসেবে শেয়ার করুন' : 'Share as image'}
+              aria-label={intl.formatMessage({ id: 'hadith.shareAsImage' })}
+              title={intl.formatMessage({ id: 'hadith.shareAsImage' })}
               className="p-1.5 rounded-md text-text-muted hover:text-text hover:bg-surface-highlight transition-colors"
             >
               <ImageIcon width={16} height={16} />
@@ -234,8 +256,8 @@ export function HadithCard({
             <button
               type="button"
               onClick={handleShare}
-              aria-label={locale === 'bn' ? 'লিংক শেয়ার করুন' : 'Share link'}
-              title={locale === 'bn' ? 'লিংক শেয়ার করুন' : 'Share link'}
+              aria-label={intl.formatMessage({ id: 'hadith.shareLink' })}
+              title={intl.formatMessage({ id: 'hadith.shareLink' })}
               className="p-1.5 rounded-md text-text-muted hover:text-text hover:bg-surface-highlight transition-colors"
             >
               <ShareIcon width={16} height={16} />
@@ -249,7 +271,7 @@ export function HadithCard({
         <div className="pt-4 pb-3" dir="rtl">
           <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-border-subtle/50" dir="ltr">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-gold-dark font-mono">
-              {locale === 'bn' ? 'আরবি মতন' : 'Arabic Text'}
+              {intl.formatMessage({ id: 'hadith.arabicText' })}
             </span>
             <button
               type="button"
@@ -261,19 +283,29 @@ export function HadithCard({
                   ? 'bg-gold/15 text-gold-dark border border-gold/30 animate-pulse'
                   : 'bg-surface hover:bg-surface-highlight text-text-muted hover:text-gold-dark border border-border-subtle'
               }`}
-              title={isPlayingLang('ar') ? 'থামান (Stop)' : 'আরবি শুনুন (Listen Arabic)'}
+              title={
+                isPlayingLang('ar')
+                  ? intl.formatMessage({ id: 'hadith.stop' })
+                  : intl.formatMessage({ id: 'hadith.listenArabic' })
+              }
             >
               {isPlayingLang('ar') ? (
                 <>
                   <span className="w-2.5 h-2.5 rounded-xs bg-rose-500" />
-                  <span className="bangla-ui text-[11px] font-semibold">{locale === 'bn' ? 'থামান' : 'Stop'}</span>
+                  <span className="bangla-ui text-[11px] font-semibold">
+                    {intl.formatMessage({ id: 'hadith.stop' })}
+                  </span>
                 </>
               ) : isLoadingLang('ar') ? (
-                <span className="bangla-ui text-[11px]">{locale === 'bn' ? 'লোড হচ্ছে...' : 'Loading...'}</span>
+                <span className="bangla-ui text-[11px]">
+                  {intl.formatMessage({ id: 'hadith.loading' })}
+                </span>
               ) : (
                 <>
                   <PlayIcon width={11} height={11} />
-                  <span className="bangla-ui text-[11px]">{locale === 'bn' ? 'আরবি শুনুন' : 'Listen Arabic'}</span>
+                  <span className="bangla-ui text-[11px]">
+                    {intl.formatMessage({ id: 'hadith.listenArabic' })}
+                  </span>
                 </>
               )}
             </button>
@@ -295,7 +327,7 @@ export function HadithCard({
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <div className="flex items-center gap-2 flex-1">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-gold-dark bangla-ui">
-              বাংলা অনুবাদ
+              {intl.formatMessage({ id: 'hadith.banglaTranslation' })}
             </span>
             <span className="h-[1px] flex-1 bg-border-subtle" />
           </div>
@@ -309,19 +341,29 @@ export function HadithCard({
                 ? 'bg-gold/15 text-gold-dark border border-gold/30 animate-pulse'
                 : 'bg-surface hover:bg-surface-highlight text-text-muted hover:text-gold-dark border border-border-subtle'
             }`}
-            title={isPlayingLang('bn') ? 'থামান (Stop)' : 'বাংলা অনুবাদ শুনুন (Listen Bangla)'}
+            title={
+              isPlayingLang('bn')
+                ? intl.formatMessage({ id: 'hadith.stop' })
+                : intl.formatMessage({ id: 'hadith.listenBangla' })
+            }
           >
             {isPlayingLang('bn') ? (
               <>
                 <span className="w-2.5 h-2.5 rounded-xs bg-rose-500" />
-                <span className="bangla-ui text-[11px] font-semibold">{locale === 'bn' ? 'থামান' : 'Stop'}</span>
+                <span className="bangla-ui text-[11px] font-semibold">
+                  {intl.formatMessage({ id: 'hadith.stop' })}
+                </span>
               </>
             ) : isLoadingLang('bn') ? (
-              <span className="bangla-ui text-[11px]">{locale === 'bn' ? 'লোড হচ্ছে...' : 'Loading...'}</span>
+              <span className="bangla-ui text-[11px]">
+                {intl.formatMessage({ id: 'hadith.loading' })}
+              </span>
             ) : (
               <>
                 <PlayIcon width={11} height={11} />
-                <span className="bangla-ui text-[11px]">{locale === 'bn' ? 'বাংলা অনুবাদ শুনুন' : 'Listen Bangla'}</span>
+                <span className="bangla-ui text-[11px]">
+                  {intl.formatMessage({ id: 'hadith.listenBangla' })}
+                </span>
               </>
             )}
           </button>
@@ -341,13 +383,13 @@ export function HadithCard({
               onClick={() => setShowEnglish(true)}
               className="text-xs text-text-muted hover:text-gold-dark font-medium transition-colors inline-flex items-center gap-1 pt-1"
             >
-              + English Translation
+              {intl.formatMessage({ id: 'hadith.englishTranslation' })}
             </button>
           ) : (
             <div className="mt-2 pt-2 border-t border-border-subtle animate-fade-in">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted font-sans">
-                  English Translation
+                  {intl.formatMessage({ id: 'hadith.englishLabel' })}
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -360,19 +402,29 @@ export function HadithCard({
                         ? 'bg-gold/15 text-gold-dark border border-gold/30 animate-pulse'
                         : 'bg-surface hover:bg-surface-highlight text-text-muted hover:text-gold-dark border border-border-subtle'
                     }`}
-                    title={isPlayingLang('en') ? 'Stop' : 'Listen English'}
+                    title={
+                      isPlayingLang('en')
+                        ? intl.formatMessage({ id: 'hadith.stop' })
+                        : intl.formatMessage({ id: 'hadith.listenEnglish' })
+                    }
                   >
                     {isPlayingLang('en') ? (
                       <>
                         <span className="w-2 h-2 rounded-xs bg-rose-500" />
-                        <span className="text-[11px] font-semibold">Stop</span>
+                        <span className="text-[11px] font-semibold">
+                          {intl.formatMessage({ id: 'hadith.stop' })}
+                        </span>
                       </>
                     ) : isLoadingLang('en') ? (
-                      <span className="text-[11px]">Loading...</span>
+                      <span className="text-[11px]">
+                        {intl.formatMessage({ id: 'hadith.loading' })}
+                      </span>
                     ) : (
                       <>
                         <PlayIcon width={10} height={10} />
-                        <span className="text-[11px]">Listen English</span>
+                        <span className="text-[11px]">
+                          {intl.formatMessage({ id: 'hadith.listenEnglish' })}
+                        </span>
                       </>
                     )}
                   </button>
@@ -381,7 +433,7 @@ export function HadithCard({
                     onClick={() => setShowEnglish(false)}
                     className="text-[11px] text-text-subtle hover:text-text transition-colors"
                   >
-                    Hide
+                    {intl.formatMessage({ id: 'action.hide' })}
                   </button>
                 </div>
               </div>

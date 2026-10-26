@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useLocale } from '@/components/providers/LocaleProvider';
@@ -138,6 +139,7 @@ export function ShareHadithModal({
   onClose: () => void;
   hadith: ShareHadithData | null;
 }) {
+  const intl = useIntl();
   const { locale } = useLocale();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [theme, setTheme] = useState<ShareThemeKey>('parchment');
@@ -191,7 +193,7 @@ export function ShareHadithModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={locale === 'bn' ? 'হাদিস কার্ড শেয়ার করুন' : 'Share hadith card'}
+      title={intl.formatMessage({ id: 'hadith.shareCardTitle' })}
       size="lg"
     >
       <div className="space-y-4">
@@ -222,10 +224,10 @@ export function ShareHadithModal({
 
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={download} disabled={!blob}>
-            {locale === 'bn' ? 'PNG ডাউনলোড' : 'Download PNG'}
+            {intl.formatMessage({ id: 'hadith.downloadPng' })}
           </Button>
           <Button variant="primary" onClick={share} disabled={!blob}>
-            {locale === 'bn' ? 'শেয়ার' : 'Share'}
+            {intl.formatMessage({ id: 'hadith.share' })}
           </Button>
         </div>
       </div>

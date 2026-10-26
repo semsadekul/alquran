@@ -138,7 +138,7 @@ export function TafsirDrawer({
               <button
                 type="button"
                 onClick={() => setFontSize((s) => Math.max(14, s - 1))}
-                aria-label="Decrease font size"
+                aria-label={intl.formatMessage({ id: 'tafsir.fontDecrease' })}
                 className="w-6 h-6 flex items-center justify-center text-text-muted hover:text-text rounded"
               >
                 A-
@@ -147,7 +147,7 @@ export function TafsirDrawer({
               <button
                 type="button"
                 onClick={() => setFontSize((s) => Math.min(24, s + 1))}
-                aria-label="Increase font size"
+                aria-label={intl.formatMessage({ id: 'tafsir.fontIncrease' })}
                 className="w-6 h-6 flex items-center justify-center text-text-muted hover:text-text rounded"
               >
                 A+
@@ -158,7 +158,7 @@ export function TafsirDrawer({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close tafsir drawer"
+              aria-label={intl.formatMessage({ id: 'tafsir.close' })}
               className="w-9 h-9 rounded-lg flex items-center justify-center text-text-muted hover:text-text hover:bg-surface-highlight transition-colors"
             >
               <CloseIcon width={18} height={18} />
@@ -257,7 +257,7 @@ export function TafsirDrawer({
             size="sm"
             disabled={currentAyah <= 1}
             onClick={() => onNavigateAyah(currentAyah - 1)}
-            aria-label="Previous Ayah"
+            aria-label={intl.formatMessage({ id: 'tafsir.prevAyah' })}
           >
             <ArrowLeftIcon className="w-3.5 h-3.5 mr-1" />
             <span className="hidden sm:inline">Previous Ayah</span>
@@ -273,7 +273,7 @@ export function TafsirDrawer({
             size="sm"
             disabled={currentAyah >= totalAyahs}
             onClick={() => onNavigateAyah(currentAyah + 1)}
-            aria-label="Next Ayah"
+            aria-label={intl.formatMessage({ id: 'tafsir.nextAyah' })}
           >
             <span className="hidden sm:inline">Next Ayah</span>
             <span className="sm:hidden">Next</span>

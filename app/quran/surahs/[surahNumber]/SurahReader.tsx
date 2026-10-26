@@ -28,6 +28,7 @@ import {
 } from '@/lib/data/translations';
 import {
   PlayIcon,
+  PauseIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
 } from '@/components/ui/Icon';
@@ -602,167 +603,132 @@ export default function SurahReader({
                     : `px-6 py-7 ${verse.number % 2 === 1 ? 'bg-surface-highlight/40 dark:bg-surface-highlight/20' : ''}`
                 }`}
               >
-                <div className="flex items-start gap-4 sm:gap-6">
-                  <div className="flex flex-col items-center gap-2 shrink-0">
+                {/* ─── Ayah Header Toolbar (Ayah Number & Actions) ─── */}
+                <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-border-subtle/70 gap-2 sm:gap-4 flex-wrap">
+                  {/* Left: Ayah number badge & status */}
+                  <div className="flex items-center gap-2.5">
                     <VerseNumberBadge
                       number={verse.number}
                       active={isHighlighted}
                       onClick={() => handleVerseClick(verse.number)}
                     />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                      আয়াত {verse.number.toLocaleString('bn-BD')}
+                    </span>
                     {isActive && (
                       <div
-                        className="p-1.5 rounded-full bg-gold/15 text-gold animate-fade-in shadow-xs"
+                        className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gold/15 border border-gold/30 text-gold-dark text-[11px] font-medium animate-fade-in shadow-xs"
                         title="এখন তিলাওয়াত হচ্ছে (Now reciting)"
                       >
-                        <Equalizer className="text-gold h-3.5" />
+                        <Equalizer className="text-gold-dark h-3" />
+                        <span className="hidden sm:inline">তিলাওয়াত হচ্ছে</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    {/* Arabic Verse Text */}
-                    {settings.showArabic && (
-                      settings.showWordByWord && wordsMap[verse.number] ? (
-                        <div className="mb-4">
-                          <WordByWordVerse
-                            words={wordsMap[verse.number]}
-                            arabicScript={settings.arabicScript}
-                            arabicSize={isActive ? settings.arabicSize + 4 : settings.arabicSize}
-                          />
-                        </div>
+                  {/* Right: Horizontal Actions Toolbar */}
+                  <div className="flex items-center gap-1 sm:gap-1.5">
+                    {/* Per-verse play / pause */}
+                    <button
+                      type="button"
+                      onClick={() => handleVersePlayClick(index)}
+                      aria-label={intl.formatMessage(
+                        { id: isActive ? 'audioPlayer.pauseVerse' : 'audioPlayer.playVerse' },
+                        { number: verse.number }
+                      )}
+                      title={intl.formatMessage(
+                        { id: isActive ? 'audioPlayer.pauseVerse' : 'audioPlayer.playVerse' },
+                        { number: verse.number }
+                      )}
+                      className={`h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-xs font-medium border transition-all duration-200 ${
+                        isActive
+                          ? 'bg-gold-veil border-gold-line-strong text-gold-dark animate-pulse-gold font-semibold shadow-xs'
+                          : 'bg-surface border-border-subtle text-text hover:text-gold-dark hover:border-gold/50 hover:bg-surface-highlight shadow-xs'
+                      }`}
+                    >
+                      {isActive ? (
+                        <>
+                          <PauseIcon width={13} height={13} className="text-gold-dark fill-current" />
+                          <span className="hidden sm:inline">Pause</span>
+                        </>
                       ) : (
-                        <p
-                          dir="rtl"
-                          lang="ar"
-                          className={`arabic-text transition-all duration-300 mb-5 ${
-                            isActive
-                              ? 'text-gold-dark dark:text-gold-light font-medium'
-                              : 'text-text'
-                          } ${
-                            settings.arabicScript === 'indopak' ? 'font-indopak' : 'font-uthmani'
-                          }`}
-                          style={{
-                            fontSize: isActive
-                              ? `${settings.arabicSize + 4}px`
-                              : `${settings.arabicSize}px`,
-                            lineHeight: isActive ? 2.3 : settings.arabicLineHeight,
-                          }}
-                        >
-                          {verse.arabic}
-                        </p>
-                      )
-                    )}
-
-                    {/* Transliterations / Pronunciation Section (Grouped & Balanced) */}
-                    {(settings.showTransliteration && verse.transliteration) ||
-                    (settings.showBanglaPronunciation && verse.banglaTransliteration) ? (
-                      <div className="space-y-1.5 pb-2.5 mb-3 border-b border-border-subtle/50">
-                        {/* English Transliteration */}
-                        {settings.showTransliteration && verse.transliteration && (
-                          <p
-                            lang="en"
-                            className="verse-transliteration italic text-gold-dark/90 leading-relaxed text-[15px] sm:text-base font-normal"
-                          >
-                            {verse.transliteration}
-                          </p>
-                        )}
-
-                        {/* Bangla Pronunciation (উচ্চারণ) */}
-                        {settings.showBanglaPronunciation && verse.banglaTransliteration && (
-                          <p
-                            lang="bn"
-                            className="verse-bangla-transliteration text-gold-dark/85 bangla-ui leading-relaxed text-[15px] sm:text-base font-normal"
-                            style={{ fontFamily: 'var(--font-bengali-ui)' }}
-                          >
-                            {verse.banglaTransliteration}
-                          </p>
-                        )}
-                      </div>
-                    ) : null}
-
-                    {/* Translations Section (Balanced Bangla & English) */}
-                    <div className="space-y-3">
-                      {/* Bangla Translation */}
-                      {settings.showBangla && (
-                        <p
-                          lang="bn"
-                          className="verse-bangla text-text bangla-ui leading-[1.85] sm:leading-[1.95] text-[17px] sm:text-[19px] font-normal tracking-[0.01em]"
-                        >
-                          {(altTranslations.bn && altTranslations.bn[verse.number]) || verse.bangla}
-                        </p>
+                        <>
+                          <PlayIcon width={13} height={13} className="fill-current text-gold-dark" />
+                          <span className="hidden sm:inline">Play</span>
+                        </>
                       )}
+                    </button>
 
-                      {/* English Translation */}
-                      {settings.showEnglish && (
-                        <p
-                          lang="en"
-                          className="verse-english text-text/80 italic font-sans leading-relaxed text-[15px] sm:text-[16px] pl-3 border-l-2 border-gold-line/60"
-                        >
-                          &quot;{(altTranslations.en && altTranslations.en[verse.number]) || verse.english}&quot;
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Per-ayah actions: tafsir, bookmark, copy, share */}
-                  <div className="shrink-0 mt-1.5 flex flex-col gap-1.5">
+                    {/* Read Tafsir */}
                     <button
                       type="button"
                       onClick={() => setTafsirAyah(verse.number)}
                       aria-label="Read Tafsir"
-                      title="Read Tafsir"
-                      className="w-8 h-8 rounded-full flex items-center justify-center border border-gold-line text-ink-3 hover:text-gold-dark hover:border-gold-line-strong transition-colors"
+                      title="তাফসির পড়ুন (Read Tafsir)"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center border border-border-subtle bg-surface text-text-muted hover:text-gold-dark hover:border-gold/40 hover:bg-surface-highlight shadow-xs transition-colors"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                       </svg>
                     </button>
+
+                    {/* Bookmark */}
                     <button
                       type="button"
                       onClick={() => handleBookmark(verse.number)}
                       aria-pressed={bookmarked.has(`${number}:${verse.number}`)}
                       aria-label={bookmarked.has(`${number}:${verse.number}`) ? 'Remove bookmark' : 'Bookmark ayah'}
-                      title={bookmarked.has(`${number}:${verse.number}`) ? 'Remove bookmark' : 'Bookmark ayah'}
-                      className="w-8 h-8 rounded-full flex items-center justify-center border border-gold-line text-ink-3 hover:text-gold-dark hover:border-gold-line-strong transition-colors"
+                      title={bookmarked.has(`${number}:${verse.number}`) ? 'বুকমার্ক সরান' : 'বুকমার্ক করুন'}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center border shadow-xs transition-colors ${
+                        bookmarked.has(`${number}:${verse.number}`)
+                          ? 'border-gold/50 bg-gold/15 text-gold-dark'
+                          : 'border-border-subtle bg-surface text-text-muted hover:text-gold-dark hover:border-gold/40 hover:bg-surface-highlight'
+                      }`}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill={bookmarked.has(`${number}:${verse.number}`) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill={bookmarked.has(`${number}:${verse.number}`) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <path d="M6 3h12v18l-6-4-6 4V3z" />
                       </svg>
                     </button>
+
+                    {/* Copy */}
                     <button
                       type="button"
                       onClick={() => handleCopy(verse)}
                       aria-label="Copy ayah"
-                      title="Copy ayah"
-                      className="w-8 h-8 rounded-full flex items-center justify-center border border-gold-line text-ink-3 hover:text-gold-dark hover:border-gold-line-strong transition-colors"
+                      title="আয়াত কপি করুন (Copy Ayah)"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center border border-border-subtle bg-surface text-text-muted hover:text-gold-dark hover:border-gold/40 hover:bg-surface-highlight shadow-xs transition-colors"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <rect x="9" y="9" width="11" height="11" rx="2" />
                         <path d="M5 15V5a2 2 0 0 1 2-2h10" />
                       </svg>
                     </button>
+
+                    {/* Share as Image Card */}
                     <button
                       type="button"
                       onClick={() => openShareCard(verse)}
                       aria-label="Share as image"
-                      title="Share as image"
-                      className="w-8 h-8 rounded-full flex items-center justify-center border border-gold-line text-ink-3 hover:text-gold-dark hover:border-gold-line-strong transition-colors"
+                      title="ছবি কার্ড হিসেবে শেয়ার করুন (Share Card)"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center border border-border-subtle bg-surface text-text-muted hover:text-gold-dark hover:border-gold/40 hover:bg-surface-highlight shadow-xs transition-colors"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <rect x="3" y="3" width="18" height="18" rx="2" />
                         <circle cx="9" cy="9" r="2" />
                         <path d="M21 15l-5-5L5 21" />
                       </svg>
                     </button>
+
+                    {/* Share Link */}
                     <button
                       type="button"
                       onClick={() => handleShare(verse.number)}
                       aria-label={intl.formatMessage({ id: 'reader.share' })}
-                      title={intl.formatMessage({ id: 'reader.share' })}
-                      className="w-8 h-8 rounded-full flex items-center justify-center border border-gold-line text-ink-3 hover:text-gold-dark hover:border-gold-line-strong transition-colors"
+                      title="শেয়ার লিঙ্ক (Share Link)"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center border border-border-subtle bg-surface text-text-muted hover:text-gold-dark hover:border-gold/40 hover:bg-surface-highlight shadow-xs transition-colors"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <circle cx="18" cy="5" r="3" />
                         <circle cx="6" cy="12" r="3" />
                         <circle cx="18" cy="19" r="3" />
@@ -770,31 +736,92 @@ export default function SurahReader({
                       </svg>
                     </button>
                   </div>
+                </div>
 
-                  {/* Per-verse play / pause — starts recitation from this ayah */}
-                  <button
-                    type="button"
-                    onClick={() => handleVersePlayClick(index)}
-                    aria-label={intl.formatMessage(
-                      { id: isActive ? 'audioPlayer.pauseVerse' : 'audioPlayer.playVerse' },
-                      { number: verse.number }
-                    )}
-                    title={intl.formatMessage(
-                      { id: isActive ? 'audioPlayer.pauseVerse' : 'audioPlayer.playVerse' },
-                      { number: verse.number }
-                    )}
-                    className={`shrink-0 mt-1.5 w-9 h-9 rounded-full flex items-center justify-center border transition-all duration-200 ${
-                      isActive
-                        ? 'bg-gold-veil border-gold-line-strong text-gold-dark animate-pulse-gold'
-                        : 'bg-surface-2 border-gold-line text-ink-3 hover:text-gold-dark hover:border-gold-line-strong hover:bg-gold-veil hover:scale-105 active:scale-95'
-                    }`}
-                  >
-                    {isActive ? (
-                      <Equalizer />
+                {/* ─── Ayah Text Body (Full Width) ─── */}
+                <div className="w-full space-y-4">
+                  {/* Arabic Verse Text */}
+                  {settings.showArabic && (
+                    settings.showWordByWord && wordsMap[verse.number] ? (
+                      <div className="mb-4">
+                        <WordByWordVerse
+                          words={wordsMap[verse.number]}
+                          arabicScript={settings.arabicScript}
+                          arabicSize={isActive ? settings.arabicSize + 4 : settings.arabicSize}
+                        />
+                      </div>
                     ) : (
-                      <PlayIcon className="w-4 h-4" />
+                      <p
+                        dir="rtl"
+                        lang="ar"
+                        className={`arabic-text transition-all duration-300 mb-5 ${
+                          isActive
+                            ? 'text-gold-dark dark:text-gold-light font-medium'
+                            : 'text-text'
+                        } ${
+                          settings.arabicScript === 'indopak' ? 'font-indopak' : 'font-uthmani'
+                        }`}
+                        style={{
+                          fontSize: isActive
+                            ? `${settings.arabicSize + 4}px`
+                            : `${settings.arabicSize}px`,
+                          lineHeight: isActive ? 2.3 : settings.arabicLineHeight,
+                        }}
+                      >
+                        {verse.arabic}
+                      </p>
+                    )
+                  )}
+
+                  {/* Transliterations / Pronunciation Section (Grouped & Balanced) */}
+                  {(settings.showTransliteration && verse.transliteration) ||
+                  (settings.showBanglaPronunciation && verse.banglaTransliteration) ? (
+                    <div className="space-y-1.5 pb-2.5 mb-3 border-b border-border-subtle/50">
+                      {/* English Transliteration */}
+                      {settings.showTransliteration && verse.transliteration && (
+                        <p
+                          lang="en"
+                          className="verse-transliteration italic text-gold-dark/90 leading-relaxed text-[15px] sm:text-base font-normal"
+                        >
+                          {verse.transliteration}
+                        </p>
+                      )}
+
+                      {/* Bangla Pronunciation (উচ্চারণ) */}
+                      {settings.showBanglaPronunciation && verse.banglaTransliteration && (
+                        <p
+                          lang="bn"
+                          className="verse-bangla-transliteration text-gold-dark/85 bangla-ui leading-relaxed text-[15px] sm:text-base font-normal"
+                          style={{ fontFamily: 'var(--font-bengali-ui)' }}
+                        >
+                          {verse.banglaTransliteration}
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {/* Translations Section (Balanced Bangla & English) */}
+                  <div className="space-y-3">
+                    {/* Bangla Translation */}
+                    {settings.showBangla && (
+                      <p
+                        lang="bn"
+                        className="verse-bangla text-text bangla-ui leading-[1.85] sm:leading-[1.95] text-[17px] sm:text-[19px] font-normal tracking-[0.01em]"
+                      >
+                        {(altTranslations.bn && altTranslations.bn[verse.number]) || verse.bangla}
+                      </p>
                     )}
-                  </button>
+
+                    {/* English Translation */}
+                    {settings.showEnglish && (
+                      <p
+                        lang="en"
+                        className="verse-english text-text/80 italic font-sans leading-relaxed text-[15px] sm:text-[16px] pl-3 border-l-2 border-gold-line/60"
+                      >
+                        &quot;{(altTranslations.en && altTranslations.en[verse.number]) || verse.english}&quot;
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             );

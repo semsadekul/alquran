@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { NAV_ITEMS, SECTION_ICONS } from '@/lib/nav';
@@ -43,38 +44,34 @@ export function DesktopSidebar() {
     href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 fixed left-0 top-0 h-full bg-surface border-r border-border z-40">
+    <aside className="hidden lg:flex flex-col w-72 fixed left-0 top-0 h-full bg-surface border-r border-border z-40">
       {/* Brand */}
-      <div className="px-6 pt-7 pb-6 border-b border-border-subtle">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div
-            aria-hidden="true"
-            className="w-11 h-11 rounded-md flex items-center justify-center text-[#1a1814] shadow-soft transition-transform group-hover:scale-[1.03]"
-            style={{
-              background:
-                'linear-gradient(135deg, var(--gold-light), var(--gold) 60%, var(--gold-dark))',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 4px 12px -4px rgba(184,150,74,0.5)',
-            }}
-          >
-            <span
-              className="font-arabic text-2xl leading-none"
-              style={{ fontFamily: 'var(--font-arabic)' }}
-            >
-              ق
-            </span>
+      <div className="px-6 py-6 border-b border-border-subtle">
+        <Link href="/" className="flex items-center gap-3.5 group">
+          <div className="relative w-11 h-11 shrink-0 rounded-xl overflow-hidden shadow-soft border border-gold-line/40 bg-surface-highlight flex items-center justify-center transition-transform group-hover:scale-[1.04]">
+            <Image
+              src="/icon-mark.png"
+              alt="Al Quran Logo"
+              width={44}
+              height={44}
+              className="w-full h-full object-contain p-0.5"
+              priority
+            />
           </div>
-          <div>
-            <h1 className="font-display text-xl font-semibold text-text leading-none">
-              {intl.formatMessage({ id: 'nav.home' }).replace('Home', 'Al Quran')}
+          <div className="min-w-0">
+            <h1 className="font-display text-lg font-bold text-text leading-tight group-hover:text-gold-dark transition-colors">
+              আল কুরআন
             </h1>
-            <p className="bangla-ui text-xs text-text-muted mt-1">আল কুরআন</p>
+            <p className="text-xs text-gold-dark font-medium tracking-wide mt-0.5">
+              Al Quran &amp; Hadith
+            </p>
           </div>
         </Link>
       </div>
 
       {/* Primary nav */}
-      <nav className="flex-1 px-3 py-5 overflow-y-auto" aria-label={intl.formatMessage({ id: 'nav.sections' })}>
-        <p className="eyebrow px-3 mb-3">
+      <nav className="flex-1 px-3.5 py-5 overflow-y-auto" aria-label={intl.formatMessage({ id: 'nav.sections' })}>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-text-muted px-3 mb-2.5">
           {intl.formatMessage({ id: 'topbar.section' })}
         </p>
         <ul className="space-y-1">
@@ -91,33 +88,35 @@ export function DesktopSidebar() {
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={[
-                    'group relative flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors duration-200',
+                    'group relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-[15px] font-medium transition-all duration-200',
                     active
-                      ? 'bg-surface-highlight text-gold-dark font-medium'
-                      : 'text-ink-2 hover:text-ink hover:bg-surface-highlight',
+                      ? 'bg-surface-highlight text-gold-dark font-semibold shadow-xs'
+                      : 'text-text/80 hover:text-text hover:bg-surface-highlight',
                   ].join(' ')}
                 >
                   {active && (
                     <span
                       aria-hidden="true"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[2px] rounded-r-full bg-gold"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gold-dark"
                     />
                   )}
                   <Icon
-                    width={18}
-                    height={18}
-                    className={active ? 'text-gold-dark' : 'text-ink-3 group-hover:text-ink-2'}
+                    width={20}
+                    height={20}
+                    className={active ? 'text-gold-dark shrink-0' : 'text-text-muted group-hover:text-gold-dark shrink-0 transition-colors'}
                   />
                   <span>{label}</span>
-                  {/* Show Bengali suffix ONLY when locale is 'bn' */}
-                  {locale === 'bn' && item.bengali && (
-                    <span className="bangla-ui ml-auto text-xs text-ink-4">{item.bengali}</span>
+                  {/* Show Bengali suffix ONLY when locale is 'bn' and it differs from the label */}
+                  {locale === 'bn' && item.bengali && item.bengali !== label && (
+                    <span aria-hidden="true" className="bangla-ui ml-auto text-xs text-text-muted">
+                      {item.bengali}
+                    </span>
                   )}
                 </Link>
 
                 {/* Hadith 7 Major Collections sub-links when inside Hadith */}
                 {isHadith && hadithActive && (
-                  <ul className="mt-1 ml-6 pl-2 border-l border-border-subtle space-y-0.5">
+                  <ul className="mt-1 ml-6 pl-2.5 border-l-2 border-gold-line/40 space-y-1 py-1">
                     {[
                       { id: 'bukhari', nameBn: 'সহীহ বুখারী', nameEn: 'Sahih al-Bukhari' },
                       { id: 'muslim', nameBn: 'সহীহ মুসলিম', nameEn: 'Sahih Muslim' },
@@ -134,13 +133,13 @@ export function DesktopSidebar() {
                           <Link
                             href={bookHref}
                             className={[
-                              'block px-2.5 py-1.5 text-xs rounded transition-colors',
+                              'block px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
                               isBookActive
-                                ? 'text-gold-dark font-medium bg-gold/10'
-                                : 'text-ink-3 hover:text-ink-1 hover:bg-surface-highlight',
+                                ? 'text-gold-dark font-semibold bg-gold/15'
+                                : 'text-text-muted hover:text-text hover:bg-surface-highlight',
                             ].join(' ')}
                           >
-                            <span className="truncate block">
+                            <span className="truncate block bangla-ui">
                               {locale === 'bn' ? book.nameBn : book.nameEn}
                             </span>
                           </Link>
@@ -156,7 +155,7 @@ export function DesktopSidebar() {
 
         <hr className="gold-rule my-5" />
 
-        <p className="eyebrow px-3 mb-3">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-text-muted px-3 mb-2.5">
           {intl.formatMessage({ id: 'topbar.section' })}
         </p>
         <ul className="space-y-1">
@@ -170,22 +169,22 @@ export function DesktopSidebar() {
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={[
-                    'group relative flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors duration-200',
+                    'group relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-[15px] font-medium transition-all duration-200',
                     active
-                      ? 'bg-surface-highlight text-gold-dark font-medium'
-                      : 'text-ink-2 hover:text-ink hover:bg-surface-highlight',
+                      ? 'bg-surface-highlight text-gold-dark font-semibold shadow-xs'
+                      : 'text-text/80 hover:text-text hover:bg-surface-highlight',
                   ].join(' ')}
                 >
                   {active && (
                     <span
                       aria-hidden="true"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[2px] rounded-r-full bg-gold"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gold-dark"
                     />
                   )}
                   <Icon
-                    width={18}
-                    height={18}
-                    className={active ? 'text-gold-dark' : 'text-ink-3 group-hover:text-ink-2'}
+                    width={20}
+                    height={20}
+                    className={active ? 'text-gold-dark shrink-0' : 'text-text-muted group-hover:text-gold-dark shrink-0 transition-colors'}
                   />
                   <span>{label}</span>
                 </Link>
@@ -197,18 +196,18 @@ export function DesktopSidebar() {
 
       {/* Daily progress card */}
       <div className="px-4 pb-5 pt-3 border-t border-border-subtle">
-        <div className="rounded-lg bg-surface-highlight border border-border-subtle p-4">
-          <div className="flex items-center gap-3">
-            <ProgressRing value={done} max={goal} size="sm" gradient="gold" animated={false} />
+        <div className="rounded-xl bg-surface-highlight border border-border-subtle p-4 shadow-xs">
+          <div className="flex items-center gap-3.5">
+            <ProgressRing value={done} max={goal} size="sm" gradient="gold" animated={false} decorative />
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-text-muted uppercase tracking-wider font-medium">
+              <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">
                 {intl.formatMessage({ id: 'home.readingStreak.dailyGoal' })}
               </p>
-              <p className="font-display text-lg font-semibold text-text leading-tight mt-0.5">
-                {done} / {goal}
+              <p className="font-display text-lg font-bold text-text leading-tight mt-0.5">
+                {intl.formatMessage({ id: 'stats.goalProgress' }, { done, goal })}
               </p>
               {streak > 0 && (
-                <p className="text-xs text-gold-dark mt-0.5">
+                <p className="text-xs text-gold-dark font-medium mt-0.5">
                   🔥 {streak}-day streak
                 </p>
               )}

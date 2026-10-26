@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import {
@@ -86,6 +87,7 @@ export function ShareAyahModal({
   onClose: () => void;
   data: ShareAyahData | null;
 }) {
+  const intl = useIntl();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [theme, setTheme] = useState<ThemeKey>('parchment');
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -135,9 +137,18 @@ export function ShareAyahModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Share ayah" size="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={intl.formatMessage({ id: 'share.title' })}
+      size="lg"
+    >
       <div className="space-y-4">
-        <div className="flex gap-2 flex-wrap" role="group" aria-label="Theme">
+        <div
+          className="flex gap-2 flex-wrap"
+          role="group"
+          aria-label={intl.formatMessage({ id: 'share.themeGroup' })}
+        >
           {(Object.keys(THEMES) as ThemeKey[]).map((key) => (
             <button
               key={key}
@@ -159,15 +170,16 @@ export function ShareAyahModal({
           ref={canvasRef}
           className="w-full h-auto rounded-xl border border-gold-line"
           style={{ aspectRatio: `${WIDTH} / ${HEIGHT}` }}
-          aria-label="Ayah share card preview"
+          aria-label={intl.formatMessage({ id: 'share.preview' })}
+          role="img"
         />
 
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={download} disabled={!blob}>
-            Download PNG
+            {intl.formatMessage({ id: 'share.downloadPng' })}
           </Button>
           <Button variant="primary" onClick={share} disabled={!blob}>
-            Share
+            {intl.formatMessage({ id: 'share.share' })}
           </Button>
         </div>
       </div>

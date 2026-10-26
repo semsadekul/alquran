@@ -136,7 +136,7 @@ export function ProfileMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="true"
         aria-expanded={open}
-        aria-label="Account & reading progress menu"
+        aria-label={intl.formatMessage({ id: 'profile.menuLabel' })}
         className={[
           'inline-flex items-center gap-2 rounded-full p-1.5 transition-colors',
           open ? 'bg-surface-highlight' : 'hover:bg-surface-highlight',
@@ -177,7 +177,7 @@ export function ProfileMenu() {
       {open && (
         <div
           role="dialog"
-          aria-label="Account and reading progress"
+          aria-label={intl.formatMessage({ id: 'profile.dialogLabel' })}
           className={[
             'absolute right-0 top-full mt-2 w-64 rounded-xl border border-border',
             'bg-surface-elevated shadow-elevated p-4 z-50 animate-fade-in',
@@ -235,8 +235,11 @@ export function ProfileMenu() {
                   </p>
                   <p className="text-xs text-text-muted">
                     {stats.streakDays > 0
-                      ? `${stats.streakDays}-day streak active`
-                      : 'Read daily to build streak'}
+                      ? intl.formatMessage(
+                          { id: 'profile.streakActive' },
+                          { count: stats.streakDays }
+                        )
+                      : intl.formatMessage({ id: 'profile.buildStreak' })}
                   </p>
                 </div>
               </>
@@ -246,20 +249,22 @@ export function ProfileMenu() {
           {/* Mini stats */}
           <div className="space-y-2.5 mb-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-text-muted">🔥 Streak</span>
-              <span suppressHydrationWarning className="text-sm font-semibold text-text">{stats.streakDays} days</span>
+              <span className="text-xs text-text-muted">🔥 {intl.formatMessage({ id: 'profile.streak' })}</span>
+              <span suppressHydrationWarning className="text-sm font-semibold text-text">
+                {intl.formatMessage({ id: 'profile.days' }, { count: stats.streakDays })}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-text-muted">📖 Total reads</span>
+              <span className="text-xs text-text-muted">📖 {intl.formatMessage({ id: 'profile.totalReads' })}</span>
               <span suppressHydrationWarning className="text-sm font-semibold text-text">{stats.totalReads}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-text-muted">📜 Verses</span>
+              <span className="text-xs text-text-muted">📜 {intl.formatMessage({ id: 'profile.verses' })}</span>
               <span suppressHydrationWarning className="text-sm font-semibold text-text">{stats.totalVerses}</span>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-text-muted">Today&apos;s goal</span>
+                <span className="text-xs text-text-muted">{intl.formatMessage({ id: 'profile.todayGoal' })}</span>
                 <span className="text-xs font-medium text-ink-2">{done}/{goal}</span>
               </div>
               <div className="h-2 rounded-full bg-surface-highlight overflow-hidden">
@@ -292,14 +297,14 @@ export function ProfileMenu() {
                 />
                 <span className="text-text-muted text-[11px] truncate">
                   {status === 'synced'
-                    ? 'Cloud in sync'
+                    ? intl.formatMessage({ id: 'profile.synced' })
                     : status === 'syncing'
-                      ? 'Syncing to cloud...'
+                      ? intl.formatMessage({ id: 'profile.syncing' })
                       : status === 'offline'
-                        ? 'Offline mode'
+                        ? intl.formatMessage({ id: 'profile.offline' })
                         : status === 'error'
-                          ? 'Sync error'
-                          : 'Cloud ready'}
+                          ? intl.formatMessage({ id: 'profile.syncError' })
+                          : intl.formatMessage({ id: 'profile.cloudReady' })}
                 </span>
               </div>
               <button
@@ -308,7 +313,7 @@ export function ProfileMenu() {
                 disabled={status === 'syncing'}
                 className="text-gold-dark hover:text-gold text-[11px] font-medium transition-colors disabled:opacity-50 shrink-0 ml-1"
               >
-                {status === 'syncing' ? '...' : 'Sync'}
+                {status === 'syncing' ? '...' : intl.formatMessage({ id: 'profile.sync' })}
               </button>
             </div>
           )}
@@ -323,7 +328,7 @@ export function ProfileMenu() {
               onClick={() => setOpen(false)}
             >
               <BarChartIcon width={16} height={16} className="text-gold-dark" />
-              <span>Statistics</span>
+              <span>{intl.formatMessage({ id: 'stats.title' })}</span>
             </Link>
             <Link
               href="/quran/hifz"
@@ -331,7 +336,7 @@ export function ProfileMenu() {
               onClick={() => setOpen(false)}
             >
               <StarIcon width={16} height={16} className="text-gold-dark" />
-              <span>Hifz Dashboard</span>
+              <span>{intl.formatMessage({ id: 'profile.hifzDashboard' })}</span>
             </Link>
             <Link
               href="/settings"
@@ -339,7 +344,7 @@ export function ProfileMenu() {
               onClick={() => setOpen(false)}
             >
               <SettingsIcon width={16} height={16} className="text-gold-dark" />
-              <span>Settings</span>
+              <span>{intl.formatMessage({ id: 'nav.settings' })}</span>
             </Link>
           </div>
 

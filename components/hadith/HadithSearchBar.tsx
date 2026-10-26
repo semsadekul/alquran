@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { SearchIcon, BookmarkIcon, CheckIcon } from '@/components/ui/Icon';
@@ -23,6 +24,7 @@ interface SearchResultItem {
 }
 
 export function HadithSearchBar() {
+  const intl = useIntl();
   const { locale } = useLocale();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -111,12 +113,8 @@ export function HadithSearchBar() {
               onFocus={() => {
                 if (results.length > 0) setOpen(true);
               }}
-              placeholder={
-                locale === 'bn'
-                  ? 'হাদিসের বিষয় বা নম্বর দিয়ে খুঁজুন (যেমন: ধৈর্য, নিয়ত, বা বুখারী ১)...'
-                  : 'Try: hadith about patience, intention, or Bukhari 1...'
-              }
-              className="w-full pl-10 pr-10 py-3 rounded-xl bg-surface border border-border-subtle focus:border-gold focus:ring-1 focus:ring-gold text-sm text-text placeholder:text-text-muted shadow-soft transition-all outline-none"
+              placeholder={intl.formatMessage({ id: 'hadith.searchPlaceholder' })}
+              className="w-full pl-10 pr-10 py-3 rounded-xl bg-surface border border-border-subtle focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/25 text-sm text-text placeholder:text-text-muted shadow-soft transition-all outline-none"
             />
             {query && (
               <button
@@ -141,7 +139,7 @@ export function HadithSearchBar() {
         >
           <BookmarkIcon width={16} height={16} className="text-gold" />
           <span className="hidden sm:inline">
-            {locale === 'bn' ? 'সংরক্ষিত হাদিস' : 'Saved Hadith'}
+            {intl.formatMessage({ id: 'hadith.saved' })}
           </span>
           {savedCount > 0 && (
             <span className="px-1.5 py-0.2 rounded-full bg-gold/15 text-gold-dark text-[11px] font-semibold">
@@ -156,7 +154,7 @@ export function HadithSearchBar() {
         <div className="absolute left-0 right-0 top-full mt-2 rounded-xl bg-surface border border-border shadow-2xl z-50 overflow-hidden max-h-[380px] overflow-y-auto animate-fade-in">
           {loading ? (
             <div className="p-4 text-center text-xs text-text-muted">
-              {locale === 'bn' ? 'অনুসন্ধান করা হচ্ছে...' : 'Searching hadiths...'}
+              {intl.formatMessage({ id: 'hadith.searching' })}
             </div>
           ) : results.length > 0 ? (
             <div className="p-2 space-y-1">
@@ -183,7 +181,7 @@ export function HadithSearchBar() {
             </div>
           ) : (
             <div className="p-4 text-center text-xs text-text-muted">
-              {locale === 'bn' ? 'কোনো হাদিস পাওয়া যায়নি' : 'No hadith found'}
+              {intl.formatMessage({ id: 'hadith.noResults' })}
             </div>
           )}
         </div>

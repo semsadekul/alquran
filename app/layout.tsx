@@ -1,5 +1,6 @@
 import type React from 'react';
-import { Inter, Lora, Amiri, Hind_Siliguri, Noto_Serif_Bengali } from 'next/font/google';
+import { Inter, Lora, Amiri } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { ThemeProvider } from '../components/providers/ThemeProvider';
 import { LocaleProvider } from '../components/providers/LocaleProvider';
@@ -34,20 +35,13 @@ const amiri = Amiri({
   display: 'swap',
 });
 
-const hindSiliguri = Hind_Siliguri({
-  subsets: ['bengali'],
-  weight: ['400', '500', '600', '700'],
+// Bangla face — self-hosted font supplied in app/fonts/Bangla.ttf.
+// One face serves both Bangla roles: the UI token (--font-bengali-ui) and,
+// through the --font-bangla-display stack in globals.css, display headings.
+const bangla = localFont({
+  src: './fonts/Bangla.ttf',
+  display: 'swap',
   variable: '--font-bengali-ui',
-  display: 'swap',
-});
-
-// Serif Bangla for display headings (the design pairs Noto Serif Bengali
-// with Amiri; Hind Siliguri stays the UI face).
-const notoSerifBengali = Noto_Serif_Bengali({
-  subsets: ['bengali'],
-  weight: ['400', '600'],
-  variable: '--font-bangla-serif',
-  display: 'swap',
 });
 
 export const metadata = {
@@ -101,7 +95,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${lora.variable} ${amiri.variable} ${hindSiliguri.variable} ${notoSerifBengali.variable}`}
+      className={`${inter.variable} ${lora.variable} ${amiri.variable} ${bangla.variable}`}
     >
       <body className="min-h-screen bg-background text-text antialiased">
         <AuthProvider>
@@ -112,7 +106,7 @@ export default function RootLayout({
                   <ServiceWorkerProvider>
                     <PlayerProvider>
                       <DesktopSidebar />
-                      <div className="lg:pl-64">
+                      <div className="lg:pl-72">
                         <TopBar />
                         <main className="min-h-screen pb-24 sm:pb-20 lg:pb-0">
                           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

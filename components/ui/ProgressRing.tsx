@@ -12,6 +12,11 @@ interface ProgressRingProps {
   animated?: boolean;
   label?: string;
   sublabel?: string;
+  /**
+   * Hide the ring from assistive technology — use when the value it shows is
+   * already stated in adjacent text (avoids double announcements).
+   */
+  decorative?: boolean;
   className?: string;
 }
 
@@ -36,6 +41,7 @@ export function ProgressRing({
   animated = true,
   label,
   sublabel,
+  decorative = false,
   className,
 }: ProgressRingProps) {
   const config = sizeConfig[size];
@@ -45,7 +51,10 @@ export function ProgressRing({
   const strokeDashoffset = circumference - (percent / 100) * circumference;
 
   return (
-    <div className={cn('flex flex-col items-center gap-2', className)}>
+    <div
+      className={cn('flex flex-col items-center gap-2', className)}
+      aria-hidden={decorative || undefined}
+    >
       <div className="relative inline-flex items-center justify-center">
         <svg
           width={config.size}

@@ -114,7 +114,7 @@ export function ReaderSettings({ onChange }: ReaderSettingsProps) {
             <button
               onClick={() => setShowPanel(false)}
               className="text-text/50 hover:text-text"
-              aria-label="Close"
+              aria-label={intl.formatMessage({ id: 'action.close' })}
             >
               ✕
             </button>

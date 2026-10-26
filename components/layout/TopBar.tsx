@@ -3,6 +3,8 @@
 import { useIntl } from 'react-intl';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { NAV_ITEMS } from '@/lib/nav';
 import { SunIcon, MoonIcon, SearchIcon } from '@/components/ui/Icon';
@@ -81,18 +83,19 @@ export function TopBar() {
             </h2>
           </div>
           <div className="sm:hidden">
-            <span
-              aria-hidden="true"
-              className="block w-9 h-9 rounded-md flex items-center justify-center text-[#1a1814] shadow-soft"
-              style={{
-                background:
-                  'linear-gradient(135deg, var(--gold-light), var(--gold) 60%, var(--gold-dark))',
-              }}
+            <Link
+              href="/"
+              aria-label="Home"
+              className="block w-9 h-9 rounded-lg overflow-hidden border border-gold-line/40 bg-surface-highlight shadow-soft flex items-center justify-center"
             >
-              <span className="font-arabic text-lg leading-none" style={{ fontFamily: 'var(--font-arabic)' }}>
-                ق
-              </span>
-            </span>
+              <Image
+                src="/icon-mark.png"
+                alt="Logo"
+                width={36}
+                height={36}
+                className="w-full h-full object-contain p-0.5"
+              />
+            </Link>
           </div>
         </div>
 

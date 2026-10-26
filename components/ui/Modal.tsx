@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
+import { useIntl } from 'react-intl';
 import { cn } from '@/lib/cn';
 import { Button } from './Button';
 
@@ -30,6 +31,7 @@ export function Modal({
   closeOnOverlayClick = true,
   showCloseButton = true,
 }: ModalProps) {
+  const intl = useIntl();
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const handleOverlayClick = useCallback(
@@ -89,7 +91,7 @@ export function Modal({
                 size="sm"
                 onClick={onClose}
                 className="!p-1.5 !rounded-full"
-                aria-label="Close modal"
+                aria-label={intl.formatMessage({ id: 'action.close' })}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

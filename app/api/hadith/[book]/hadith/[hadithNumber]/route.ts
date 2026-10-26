@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHadithBook } from '@/lib/data/hadith-books';
+import { getHadithOverride } from '@/lib/data/hadith-overrides';
 
 export const runtime = 'nodejs';
 
@@ -45,11 +46,13 @@ export async function GET(
       (c) => num >= c.hadithFirst && num <= c.hadithLast
     ) || bookMeta.chapters[0];
 
+    const override = getHadithOverride(bookMeta.id, rawHadith.hadithnumber);
+
     const unified = {
       hadithNumber: rawHadith.hadithnumber,
       arabicNumber: rawHadith.arabicnumber,
       arabic: araData.hadiths?.[0]?.text || '',
-      bangla: rawHadith.text || '',
+      bangla: override?.bangla || rawHadith.text || '',
       english: engData.hadiths?.[0]?.text || '',
       grades: rawHadith.grades || [],
       reference: rawHadith.reference,

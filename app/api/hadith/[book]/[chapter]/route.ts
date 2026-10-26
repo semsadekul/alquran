@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHadithBook, getHadithChapter } from '@/lib/data/hadith-books';
+import { getHadithOverride } from '@/lib/data/hadith-overrides';
 
 export const runtime = 'nodejs';
 
@@ -55,11 +56,12 @@ export async function GET(
       grades?: Array<{ name: string; grade: string }>;
       reference?: { book: number; hadith: number };
     }) => {
+      const override = getHadithOverride(bookMeta.id, h.hadithnumber);
       return {
         hadithNumber: h.hadithnumber,
         arabicNumber: h.arabicnumber,
         arabic: araMap.get(h.hadithnumber) || '',
-        bangla: h.text || '',
+        bangla: override?.bangla || h.text || '',
         english: engMap.get(h.hadithnumber) || '',
         grades: h.grades || [],
         reference: h.reference,

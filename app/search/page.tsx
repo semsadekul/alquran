@@ -142,7 +142,7 @@ export default function SearchPage() {
             debounceRef.current = setTimeout(() => search(value), 300);
           }}
           placeholder={intl.formatMessage({ id: 'search.placeholder' })}
-          className="w-full h-14 px-6 rounded-xl border border-border bg-surface text-text text-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm"
+          className="w-full h-14 px-6 rounded-xl border border-border bg-surface text-text text-lg focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/25 transition-all shadow-sm"
           autoFocus
         />
         {isLoading && (

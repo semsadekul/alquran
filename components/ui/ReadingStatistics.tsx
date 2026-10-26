@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useIntl } from 'react-intl';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { ProgressRing } from '../ui/ProgressRing';
@@ -8,6 +9,7 @@ import { getSurah } from '../../lib/data/quran';
 import { readStats, setDailyGoal, type ReadingStats, type GoalUnit } from '../../lib/storage';
 
 export function ReadingStatistics() {
+  const intl = useIntl();
   const [stats, setStats] = useState<ReadingStats | null>(null);
   const [mounted, setMounted] = useState(false);
   const [editingGoal, setEditingGoal] = useState(false);
@@ -27,6 +29,7 @@ export function ReadingStatistics() {
 
   const currentUnit = stats.dailyGoalUnit || 'ayahs';
   const currentGoal = stats.dailyGoal || 5;
+  const streakDays = stats.streakDays || 0;
   const shields = stats.graceShields ?? 1;
 
   const handleSelectGoal = (val: number, unit: GoalUnit) => {
@@ -40,22 +43,22 @@ export function ReadingStatistics() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon="📖"
-          label="Total Reads"
+          label={intl.formatMessage({ id: 'stats.totalReads' })}
           value={(stats.totalReads || 0).toLocaleString()}
         />
         <StatCard
           icon="✨"
-          label="Verses Read"
+          label={intl.formatMessage({ id: 'stats.versesRead' })}
           value={(stats.totalVerses || 0).toLocaleString()}
         />
         <StatCard
           icon="📿"
-          label="Surahs Completed"
+          label={intl.formatMessage({ id: 'stats.surahsCompleted' })}
           value={`${stats.totalSurahs || 0}/114`}
         />
         <StatCard
           icon="⏱️"
-          label="Time Spent"
+          label={intl.formatMessage({ id: 'stats.timeSpent' })}
           value={formatMinutes(stats.totalMinutes || 0)}
         />
       </div>
@@ -65,23 +68,26 @@ export function ReadingStatistics() {
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div className="flex items-center gap-4">
             <ProgressRing
-              value={((stats.streakDays || 0) / 30) * 100}
+              value={(streakDays / 30) * 100}
               size="sm"
+              decorative
             />
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold text-text">{stats.streakDays || 0} Day Streak</h3>
+                <h3 className="text-xl font-bold text-text">
+                  {intl.formatMessage({ id: 'stats.dayStreak' }, { count: streakDays })}
+                </h3>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-forest/10 dark:bg-gold-veil text-gold-dark font-medium flex items-center gap-1">
-                  🛡️ {shields}/3 Shields
+                  {intl.formatMessage({ id: 'stats.shields' }, { count: shields })}
                 </span>
               </div>
               <p className="text-xs text-text-muted mt-0.5">
-                {shields > 0
-                  ? 'Your streak is protected by Grace Shield.'
-                  : 'Read 7 days in a row to earn a Grace Shield.'}
+                {streakDays > 0 && shields > 0
+                  ? intl.formatMessage({ id: 'stats.shieldProtected' })
+                  : intl.formatMessage({ id: 'stats.shieldEarn' })}
               </p>
               <div className="flex gap-1 mt-2">
-                {generateWeekDots(stats.streakDays || 0).map((active, i) => (
+                {generateWeekDots(streakDays).map((active, i) => (
                   <div
                     key={i}
                     className={`w-2 h-2 rounded-full ${active ? 'bg-gold' : 'bg-gold/20'}`}
@@ -93,17 +99,24 @@ export function ReadingStatistics() {
 
           <div className="sm:ml-auto text-center sm:text-right">
             <div className="flex items-center justify-center sm:justify-end gap-2 mb-1">
-              <p className="text-xs text-text/70 uppercase tracking-wider">Daily Goal</p>
+              <p className="text-xs text-text/70 uppercase tracking-wider">
+                {intl.formatMessage({ id: 'stats.dailyGoal' })}
+              </p>
               <button
                 type="button"
                 onClick={() => setEditingGoal(!editingGoal)}
                 className="text-xs text-gold-dark font-medium hover:underline"
               >
-                {editingGoal ? 'Done' : 'Change'}
+                {editingGoal
+                  ? intl.formatMessage({ id: 'action.done' })
+                  : intl.formatMessage({ id: 'action.change' })}
               </button>
             </div>
             <p className="text-2xl font-bold text-text">
-              {currentGoal} {currentUnit}
+              {intl.formatMessage(
+                { id: `stats.goal.${currentUnit}` },
+                { count: currentGoal }
+              )}
             </p>
           </div>
         </div>
@@ -111,15 +124,17 @@ export function ReadingStatistics() {
         {/* Goal Selector Drawer */}
         {editingGoal && (
           <div className="mt-4 pt-4 border-t border-gold/20 animate-fade-in">
-            <p className="text-xs text-text-muted mb-2 font-medium">Select your daily reading goal:</p>
+            <p className="text-xs text-text-muted mb-2 font-medium">
+              {intl.formatMessage({ id: 'stats.selectGoal' })}
+            </p>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {[
-                { val: 5, unit: 'ayahs' as GoalUnit, label: '5 Ayahs' },
-                { val: 10, unit: 'ayahs' as GoalUnit, label: '10 Ayahs' },
-                { val: 20, unit: 'ayahs' as GoalUnit, label: '20 Ayahs' },
-                { val: 10, unit: 'minutes' as GoalUnit, label: '10 Mins' },
-                { val: 20, unit: 'minutes' as GoalUnit, label: '20 Mins' },
-                { val: 4, unit: 'pages' as GoalUnit, label: '4 Pages' },
+                { val: 5, unit: 'ayahs' as GoalUnit },
+                { val: 10, unit: 'ayahs' as GoalUnit },
+                { val: 20, unit: 'ayahs' as GoalUnit },
+                { val: 10, unit: 'minutes' as GoalUnit },
+                { val: 20, unit: 'minutes' as GoalUnit },
+                { val: 4, unit: 'pages' as GoalUnit },
               ].map((opt) => (
                 <button
                   key={`${opt.val}_${opt.unit}`}
@@ -131,7 +146,10 @@ export function ReadingStatistics() {
                       : 'border-gold-line bg-surface text-text hover:bg-surface-highlight'
                   }`}
                 >
-                  {opt.label}
+                  {intl.formatMessage(
+                    { id: `stats.goal.${opt.unit}` },
+                    { count: opt.val }
+                  )}
                 </button>
               ))}
             </div>
@@ -141,7 +159,9 @@ export function ReadingStatistics() {
 
       {/* Weekly Activity */}
       <Card variant="elevated" className="p-6">
-        <h3 className="text-lg font-bold text-text mb-4">This Week</h3>
+        <h3 className="text-lg font-bold text-text mb-4">
+          {intl.formatMessage({ id: 'stats.thisWeek' })}
+        </h3>
         <div className="grid grid-cols-7 gap-2">
           {(stats.weekData || []).map((day, index) => (
             <div key={index} className="text-center">
@@ -166,19 +186,23 @@ export function ReadingStatistics() {
 
       {/* Favorite Surahs */}
       <Card variant="elevated" className="p-6">
-        <h3 className="text-lg font-bold text-text mb-4">Most Read Surahs</h3>
+        <h3 className="text-lg font-bold text-text mb-4">
+          {intl.formatMessage({ id: 'stats.mostReadSurahs' })}
+        </h3>
         <div className="space-y-3">
           {(stats.favoriteSurahs || []).slice(0, 5).map((surah, index) => (
             <div key={surah.number} className="flex items-center gap-3">
               <Badge tone="gold" size="sm">{index + 1}</Badge>
               <div className="flex-1">
-                <p className="font-medium text-text">Surah {surah.name}</p>
+                <p className="font-medium text-text">
+                  {intl.formatMessage({ id: 'stats.surahName' }, { name: surah.name })}
+                </p>
                 <p className="text-sm text-text/60">
                   {getSurah(surah.number)?.englishName ?? `Surah ${surah.number}`}
                 </p>
               </div>
               <div className="text-sm text-text/70">
-                {surah.count} {surah.count === 1 ? 'time' : 'times'}
+                {intl.formatMessage({ id: 'stats.readTimes' }, { count: surah.count })}
               </div>
             </div>
           ))}
@@ -187,36 +211,38 @@ export function ReadingStatistics() {
 
       {/* Milestones */}
       <Card variant="elevated" className="p-6">
-        <h3 className="text-lg font-bold text-text mb-4">Milestones</h3>
+        <h3 className="text-lg font-bold text-text mb-4">
+          {intl.formatMessage({ id: 'stats.milestones' })}
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <MilestoneBadge
             icon="🎯"
-            label="First Read"
+            label={intl.formatMessage({ id: 'stats.milestone.firstRead' })}
             achieved={(stats.totalReads || 0) > 0}
           />
           <MilestoneBadge
             icon="📚"
-            label="100 Verses"
+            label={intl.formatMessage({ id: 'stats.milestone.verses100' })}
             achieved={(stats.totalVerses || 0) >= 100}
           />
           <MilestoneBadge
             icon="🌟"
-            label="Complete Juz"
+            label={intl.formatMessage({ id: 'stats.milestone.completeJuz' })}
             achieved={(stats.totalVerses || 0) >= 240}
           />
           <MilestoneBadge
             icon="🔥"
-            label="7-Day Streak"
-            achieved={(stats.streakDays || 0) >= 7}
+            label={intl.formatMessage({ id: 'stats.milestone.streak7' })}
+            achieved={streakDays >= 7}
           />
           <MilestoneBadge
             icon="💎"
-            label="30-Day Streak"
-            achieved={(stats.streakDays || 0) >= 30}
+            label={intl.formatMessage({ id: 'stats.milestone.streak30' })}
+            achieved={streakDays >= 30}
           />
           <MilestoneBadge
             icon="🏆"
-            label="Full Quran"
+            label={intl.formatMessage({ id: 'stats.milestone.fullQuran' })}
             achieved={(stats.totalVerses || 0) >= 6236}
           />
         </div>
@@ -236,6 +262,7 @@ function StatCard({ icon, label, value }: { icon: string; label: string; value: 
 }
 
 function MilestoneBadge({ icon, label, achieved }: { icon: string; label: string; achieved: boolean }) {
+  const intl = useIntl();
   return (
     <div className={`p-4 rounded-lg text-center transition-all ${
       achieved 
@@ -245,7 +272,9 @@ function MilestoneBadge({ icon, label, achieved }: { icon: string; label: string
       <div className="text-2xl mb-2">{icon}</div>
       <div className="text-sm font-medium">{label}</div>
       {achieved && (
-        <div className="text-xs text-success mt-1">✓ Unlocked</div>
+        <div className="text-xs text-success mt-1">
+          {intl.formatMessage({ id: 'stats.unlocked' })}
+        </div>
       )}
     </div>
   );
@@ -261,5 +290,3 @@ function formatMinutes(minutes: number): string {
 function generateWeekDots(streakDays: number): boolean[] {
   return Array.from({ length: 7 }, (_, i) => i < Math.min(streakDays, 7));
 }
-
-

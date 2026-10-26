@@ -87,11 +87,22 @@ export default function HomePage() {
             <div>
               <p className="text-xs text-text-muted">{activeKhatam.title}</p>
               <p className="text-sm font-semibold text-text">
-                Page {activeKhatam.currentPage} of 604 ({Math.round((activeKhatam.completedPages.length / 604) * 100)}%)
+                {intl.formatMessage(
+                  { id: 'home.khatam.progress' },
+                  {
+                    page: formatCount(activeKhatam.currentPage, locale),
+                    percent: formatCount(
+                      Math.round((activeKhatam.completedPages.length / 604) * 100),
+                      locale
+                    ),
+                  }
+                )}
               </p>
             </div>
           </div>
-          <span className="text-xs text-gold-dark font-medium">Continue Khatam →</span>
+          <span className="text-xs text-gold-dark font-medium">
+            {intl.formatMessage({ id: 'home.khatam.continue' })}
+          </span>
         </Link>
       )}
 
@@ -105,8 +116,11 @@ export default function HomePage() {
           <span className="text-[14px] text-text truncate">
             {intl.formatMessage({ id: 'home.readingStreak' })}
           </span>
-          {shields > 0 && (
-            <span className="text-xs px-1.5 py-0.5 rounded bg-forest/10 dark:bg-gold-veil text-gold-dark font-medium flex items-center gap-1">
+          {streak > 0 && shields > 0 && (
+            <span
+              title={intl.formatMessage({ id: 'celebration.graceShields' })}
+              className="text-xs px-1.5 py-0.5 rounded bg-forest/10 dark:bg-gold-veil text-gold-dark font-medium flex items-center gap-1"
+            >
               🛡️ {shields}
             </span>
           )}

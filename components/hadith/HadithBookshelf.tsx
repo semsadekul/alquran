@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useIntl } from 'react-intl';
 import { HADITH_BOOKS, HadithBook } from '@/lib/data/hadith-books';
 import { useLocale } from '@/components/providers/LocaleProvider';
 
@@ -10,6 +11,7 @@ interface HadithBookshelfProps {
 }
 
 export function HadithBookshelf({ onSearchFocus }: HadithBookshelfProps) {
+  const intl = useIntl();
   const { locale } = useLocale();
 
   const topShelfBooks = HADITH_BOOKS.filter((b) => b.shelf === 'top');
@@ -24,11 +26,11 @@ export function HadithBookshelf({ onSearchFocus }: HadithBookshelfProps) {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <h2 className="text-xs uppercase tracking-wider font-semibold text-text-muted">
-              {locale === 'bn' ? 'সহীহাইন্‌ (সর্বোচ্চ বিশুদ্ধ দুই গ্রন্থ)' : 'The Two Sahihs (Unquestioned Authenticity)'}
+              {intl.formatMessage({ id: 'hadith.sahiheen' })}
             </h2>
           </div>
           <span className="text-xs text-text-muted">
-            {locale === 'bn' ? '১৫,১৫২টি হাদীস' : '15,152 Hadiths'}
+            {intl.formatMessage({ id: 'hadith.sahiheenCount' })}
           </span>
         </div>
 
@@ -49,11 +51,11 @@ export function HadithBookshelf({ onSearchFocus }: HadithBookshelfProps) {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-500" />
             <h2 className="text-xs uppercase tracking-wider font-semibold text-text-muted">
-              {locale === 'bn' ? 'সুনান গ্রন্থসমূহ ও মুয়াত্তা' : 'The Sunan Collections & Muwatta'}
+{intl.formatMessage({ id: 'hadith.sunan' })}
             </h2>
           </div>
           <span className="text-xs text-text-muted">
-            {locale === 'bn' ? '২১,২৩৮টি হাদীস' : '21,238 Hadiths'}
+            {intl.formatMessage({ id: 'hadith.sunanCount' })}
           </span>
         </div>
 
@@ -77,15 +79,13 @@ export function HadithBookshelf({ onSearchFocus }: HadithBookshelfProps) {
             </div>
             <div>
               <span className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-gold/15 text-gold-dark mb-1">
-                {locale === 'bn' ? 'বিশেষ সংকলন' : 'Special Collection'}
+                {intl.formatMessage({ id: 'hadith.special' })}
               </span>
               <h3 className="font-display font-semibold text-text text-base">
-                {locale === 'bn' ? 'চল্লিশ হাদিস - ইমাম নববী' : 'Forty Hadith of an-Nawawi'}
+                {intl.formatMessage({ id: 'hadith.nawawi' })}
               </h3>
               <p className="text-xs text-text-muted">
-                {locale === 'bn'
-                  ? 'দ্বীনের মৌলিক শিক্ষার ৪২টি সর্বাধিক গুরুত্বপূর্ণ হাদিস'
-                  : '42 core foundational traditions of Islam'}
+                {intl.formatMessage({ id: 'hadith.nawawiDesc' })}
               </p>
             </div>
           </div>
@@ -93,7 +93,7 @@ export function HadithBookshelf({ onSearchFocus }: HadithBookshelfProps) {
             href="/hadith/nawawi"
             className="px-4 py-2 rounded-lg bg-surface border border-border-subtle hover:border-gold/50 text-xs font-medium text-text hover:text-gold-dark transition-colors shadow-soft"
           >
-            {locale === 'bn' ? 'হাদিসগুলো পড়ুন →' : 'Read Collection →'}
+{intl.formatMessage({ id: 'hadith.readCollection' })}
           </Link>
         </div>
       )}
@@ -101,14 +101,10 @@ export function HadithBookshelf({ onSearchFocus }: HadithBookshelfProps) {
       {/* Authenticity Caption */}
       <div className="text-center mt-10 text-xs text-text-muted max-w-xl mx-auto px-4">
         <p className="bangla-ui leading-relaxed">
-          {locale === 'bn'
-            ? 'উভয় সহীহ গ্রন্থই (বুখারী ও মুসলিম) শতভাগ বিশুদ্ধ; অন্যান্য সুনান গ্রন্থে প্রতিটি হাদিসের সাথে শায়খ আল-আলবানী ও মুহাক্কিকীনদের সনদ ভিত্তিক মানদণ্ড (সহীহ, হাসান, যঈফ) উল্লেখ করা হয়েছে।'
-            : 'Both Sahihs are entirely sahih; in the other collections, each tradition carries its authenticity grade (Sahih, Hasan, Da\'if) and scholar attribution.'}
+          {intl.formatMessage({ id: 'hadith.authenticityCaption' })}
         </p>
         <p className="mt-1 text-[11px] text-text-subtle">
-          {locale === 'bn'
-            ? 'বাংলা অনুবাদ: তাওহীদ পাবলিকেশন, হাদীস একাডেমি ও ইসলামিক ফাউন্ডেশন বাংলাদেশ অনুযায়ী'
-            : 'Verified Bengali Translation: Tawheed Publication, Hadith Academy & Islamic Foundation Bangladesh'}
+          {intl.formatMessage({ id: 'hadith.translationCaption' })}
         </p>
       </div>
     </div>

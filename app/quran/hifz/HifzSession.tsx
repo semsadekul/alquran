@@ -182,7 +182,7 @@ function MaskedArabic({
   };
 
   const words = toWords(text);
-  const base = 'text-2xl md:text-3xl font-arabic text-text leading-relaxed';
+  const base = 'text-3xl sm:text-4xl lg:text-5xl font-arabic text-text leading-relaxed';
 
   return (
     <p
@@ -562,6 +562,17 @@ export default function HifzSession() {
 
   // ─── Practice session loop ────────────────────────────────────────
 
+  // While the focused session view covers the viewport, the page behind it
+  // must not scroll.
+  useEffect(() => {
+    if (phase !== 'playing' && phase !== 'paused') return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [phase]);
+
   const stopSession = useCallback(() => {
     runningRef.current = false;
     stopCurrentAudio();
@@ -682,7 +693,244 @@ export default function HifzSession() {
   }
 
   const selectClass =
-    'w-full bg-surface border border-gold-line/60 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-text focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/20 transition-colors';
+    'w-full bg-surface border border-gold-line/60 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-text focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/25 transition-colors';
+
+  // Shared between the setup panel and the focused session view.
+  const masteryGrid =
+    practiceAyahs.length > 0 ? (
+      <Card variant="elevated" className="p-4">
+        <p className="text-xs text-text/50 uppercase tracking-wider mb-3">
+          Ayah Mastery
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {practiceAyahs.map((ayahNum) => {
+            const key = `${config.surahNumber}:${ayahNum}`;
+            const masteryEntry = mastery[key];
+            const isCurrent = ayahNum === currentAyahInSurah;
+            const practiceCount = masteryEntry?.practiceCount ?? 0;
+            const mastered = masteryEntry?.mastered ?? false;
+
+            return (
+              <div
+                key={ayahNum}
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  isCurrent
+                    ? 'bg-gold/20 ring-1 ring-gold/40 scale-105'
+                    : 'bg-surface-highlight/50'
+                }`}
+              >
+                <span className="text-text">{ayahNum}</span>
+                {mastered ? (
+                  <CheckIcon className="w-3 h-3 text-success" />
+                ) : (
+                  <span className="text-text/40">{practiceCount}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    ) : null;
+
+  // ─── Focused session view ───────────────────────────────────────
+  // Once playback starts the screen belongs to the ayah being recited:
+  // settings and every other section step aside until the session stops.
+  if (phase === 'playing' || phase === 'paused') {
+    return (
+      <div className="fixed inset-0 z-[60] bg-background overflow-y-auto">
+        <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col gap-5 px-4 sm:px-6 py-5 sm:py-6">
+          {/* Status + live counters */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {phase === 'playing' ? (
+                <span className="relative flex h-3 w-3 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-gold-dark" />
+                </span>
+              ) : (
+                <span className="text-xl leading-none" aria-hidden="true">
+                  ⏸
+                </span>
+              )}
+              <div className="min-w-0">
+                <p className="text-gold-dark text-xs font-medium uppercase tracking-wider flex items-center gap-2">
+                  {phase === 'playing' ? 'Playing' : 'Paused'}
+                  {phase === 'playing' && <Equalizer className="text-gold-dark" />}
+                </p>
+                <h2 className="text-xl sm:text-2xl font-semibold text-text truncate">
+                  {selectedSurah?.englishName} — Ayah {currentAyahInSurah}
+                </h2>
+                <p className="text-text/60 text-sm truncate">
+                  {selectedSurah?.name} · {selectedSurah?.banglaName}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="px-3 py-1.5 rounded-xl bg-surface-highlight/60 border border-gold-line/40 text-center">
+                <p className="text-[10px] text-text-muted uppercase tracking-wider">
+                  Verse Repeat
+                </p>
+                <p className="text-sm font-bold text-gold-dark">
+                  {verseRepeatCounter}
+                  <span className="text-text/40">/{config.repeatEachVerse}</span>
+                </p>
+              </div>
+              <div className="px-3 py-1.5 rounded-xl bg-surface-highlight/60 border border-gold-line/40 text-center">
+                <p className="text-[10px] text-text-muted uppercase tracking-wider">
+                  Range Loop
+                </p>
+                <p className="text-sm font-bold text-gold-dark">
+                  {rangeLoopCounter}
+                  <span className="text-text/40">/{config.repeatRangeLoops}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* The active ayah — large and centered for reading while listening */}
+          <section className="flex-1 flex flex-col justify-center" aria-label="Active ayah">
+            <Card
+              variant="elevated"
+              className={`p-6 sm:p-10 transition-all duration-300 ${
+                hasVoiceMismatch ? 'ring-2 ring-amber-500/70 bg-amber-500/5' : ''
+              }`}
+            >
+              <div className="mx-auto w-full max-w-3xl">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-text/50 uppercase tracking-wider">
+                    Active Ayah
+                  </p>
+                  {voiceMode && (
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-forest/10 dark:bg-gold-veil text-gold-dark font-medium flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Voice Recitation
+                    </span>
+                  )}
+                </div>
+
+                <MaskBar
+                  value={config.maskLevel}
+                  onChange={(level) => updateConfig({ maskLevel: level })}
+                  hintsUsed={hintsUsed}
+                />
+
+                {/* Voice Follow-Along Live Status */}
+                {voiceMode && phase === 'playing' && (
+                  <div className="mb-4 flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-highlight/70 border border-gold-line/40 text-sm">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="relative flex h-3 w-3 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+                      </span>
+                      <div className="min-w-0 text-left">
+                        <p className="font-medium text-text text-xs sm:text-sm">
+                          {isListening ? 'Recite in Arabic...' : 'Starting microphone...'}
+                        </p>
+                        {spokenTranscript && (
+                          <p className="text-xs text-text-muted truncate font-arabic" dir="rtl">
+                            &ldquo;{spokenTranscript}&rdquo;
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={stopVoiceRecognition}
+                      className="shrink-0 text-xs py-1 px-2.5 h-auto border-gold-line text-text hover:bg-surface"
+                    >
+                      Pass Ayah →
+                    </Button>
+                  </div>
+                )}
+
+                {hasVoiceMismatch && (
+                  <div className="mb-3 p-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 rounded-lg text-center font-medium animate-pulse">
+                    ⚠️ Tajweed check: pronunciation mismatch detected
+                  </div>
+                )}
+
+                {(() => {
+                  const current = surahVerses.find((v) => v.number === currentAyahInSurah);
+                  if (!current)
+                    return <p className="text-text/40 text-center">Loading...</p>;
+                  return (
+                    <div className="text-center space-y-3">
+                      <MaskedArabic
+                        text={current.arabic}
+                        level={config.maskLevel}
+                        onPeek={() => setHintsUsed((n) => n + 1)}
+                        matchedWords={matchedWords}
+                        voiceMode={voiceMode}
+                      />
+                      {config.hideTranslation || config.maskLevel > 0 ? (
+                        <p className="text-text/30 italic text-base">
+                          — Memory test mode —
+                        </p>
+                      ) : (
+                        <>
+                          {current.transliteration && (
+                            <p className="text-gold-dark/80 italic text-base sm:text-lg">
+                              {current.transliteration}
+                            </p>
+                          )}
+                          {current.banglaTransliteration && (
+                            <p
+                              className="text-gold-dark/70 text-base bangla-ui"
+                              style={{ fontFamily: 'var(--font-bengali-ui)' }}
+                            >
+                              {current.banglaTransliteration}
+                            </p>
+                          )}
+                          <p
+                            className="text-text/90 text-base sm:text-lg"
+                            style={{ fontFamily: 'var(--font-bengali-ui)' }}
+                          >
+                            {current.bangla}
+                          </p>
+                          <p className="text-text/60 italic text-base sm:text-lg">
+                            &ldquo;{current.english}&rdquo;
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </Card>
+          </section>
+
+          {masteryGrid}
+
+          {/* Session controls — Stop returns to the settings view */}
+          <div className="flex gap-3 pb-2">
+            {phase === 'playing' ? (
+              <>
+                <Button variant="outline" className="flex-1 py-3" onClick={handlePause}>
+                  <PauseIcon className="w-4 h-4 mr-2" />
+                  Pause
+                </Button>
+                <Button variant="ghost" className="flex-1 py-3" onClick={handleReset}>
+                  Stop
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="primary" className="flex-1 py-3" onClick={handleResume}>
+                  <PlayIcon className="w-4 h-4 mr-2" />
+                  Resume
+                </Button>
+                <Button variant="ghost" className="flex-1 py-3" onClick={handleReset}>
+                  Stop
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -944,13 +1192,7 @@ export default function HifzSession() {
         <Card
           variant="hero"
           className={`relative overflow-hidden p-6 ${
-            phase === 'playing'
-              ? 'border-gold/40'
-              : phase === 'completed'
-                ? 'border-success/40'
-                : phase === 'paused'
-                  ? 'border-warning/40'
-                  : ''
+            phase === 'completed' ? 'border-success/40' : ''
           }`}
         >
           <div className="relative z-10 text-center">
@@ -986,43 +1228,6 @@ export default function HifzSession() {
                 </div>
               </>
             )}
-            {phase === 'playing' && (
-              <>
-                <div className="flex items-center justify-center gap-2.5 mb-3">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-gold-dark" />
-                  </span>
-                  <span className="text-gold-dark text-sm font-medium uppercase tracking-wider">
-                    Playing
-                  </span>
-                  <Equalizer className="text-gold-dark" />
-                </div>
-                <h2 className="text-2xl font-semibold text-text mb-1">
-                  {selectedSurah?.englishName} — Ayah {currentAyahInSurah}
-                </h2>
-                <p className="text-text/60 text-sm">
-                  {selectedSurah?.name} · {selectedSurah?.banglaName}
-                </p>
-              </>
-            )}
-            {phase === 'paused' && (
-              <>
-                <div className="text-4xl mb-3">⏸</div>
-                <h2 className="text-xl font-semibold text-text mb-1">Paused</h2>
-                <p className="text-text/60 text-sm mb-4">
-                  {selectedSurah?.englishName} — Ayah {currentAyahInSurah}
-                </p>
-                <div className="flex gap-3 justify-center">
-                  <Button variant="primary" onClick={handleResume}>
-                    <PlayIcon className="w-4 h-4 mr-2" /> Resume
-                  </Button>
-                  <Button variant="ghost" onClick={handleReset}>
-                    Reset
-                  </Button>
-                </div>
-              </>
-            )}
             {phase === 'completed' && (
               <>
                 <div className="text-4xl mb-3">✅</div>
@@ -1040,189 +1245,8 @@ export default function HifzSession() {
           </div>
         </Card>
 
-        {/* Repeat counters */}
-        {(phase === 'playing' || phase === 'paused') && (
-          <div className="grid grid-cols-2 gap-3">
-            <Card variant="elevated" className="p-4 text-center">
-              <p className="text-xs text-text/50 uppercase tracking-wider mb-1">
-                Verse Repeat
-              </p>
-              <p className="text-3xl font-bold text-gold-dark">
-                {verseRepeatCounter}
-                <span className="text-lg text-text/40">/{config.repeatEachVerse}</span>
-              </p>
-            </Card>
-            <Card variant="elevated" className="p-4 text-center">
-              <p className="text-xs text-text/50 uppercase tracking-wider mb-1">
-                Range Loop
-              </p>
-              <p className="text-3xl font-bold text-gold-dark">
-                {rangeLoopCounter}
-                <span className="text-lg text-text/40">/{config.repeatRangeLoops}</span>
-              </p>
-            </Card>
-          </div>
-        )}
-
-        {/* Active Ayah display */}
-        {(phase === 'playing' || phase === 'paused') && surahVerses.length > 0 && (
-          <Card
-            variant="elevated"
-            className={`p-6 transition-all duration-300 ${
-              hasVoiceMismatch ? 'ring-2 ring-amber-500/70 bg-amber-500/5' : ''
-            }`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-text/50 uppercase tracking-wider">
-                Active Ayah
-              </p>
-              {voiceMode && (
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-forest/10 dark:bg-gold-veil text-gold-dark font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Voice Recitation
-                </span>
-              )}
-            </div>
-
-            <MaskBar
-              value={config.maskLevel}
-              onChange={(level) => updateConfig({ maskLevel: level })}
-              hintsUsed={hintsUsed}
-            />
-
-            {/* Voice Follow-Along Live Status */}
-            {voiceMode && phase === 'playing' && (
-              <div className="mb-4 flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-highlight/70 border border-gold-line/40 text-sm">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="relative flex h-3 w-3 shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-                  </span>
-                  <div className="min-w-0 text-left">
-                    <p className="font-medium text-text text-xs sm:text-sm">
-                      {isListening ? 'Recite in Arabic...' : 'Starting microphone...'}
-                    </p>
-                    {spokenTranscript && (
-                      <p className="text-xs text-text-muted truncate font-arabic" dir="rtl">
-                        &ldquo;{spokenTranscript}&rdquo;
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={stopVoiceRecognition}
-                  className="shrink-0 text-xs py-1 px-2.5 h-auto border-gold-line text-text hover:bg-surface"
-                >
-                  Pass Ayah →
-                </Button>
-              </div>
-            )}
-
-            {hasVoiceMismatch && (
-              <div className="mb-3 p-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 rounded-lg text-center font-medium animate-pulse">
-                ⚠️ Tajweed check: pronunciation mismatch detected
-              </div>
-            )}
-
-            {(() => {
-              const current = surahVerses.find((v) => v.number === currentAyahInSurah);
-              if (!current)
-                return <p className="text-text/40 text-center">Loading...</p>;
-              return (
-                <div className="text-center space-y-3">
-                  <MaskedArabic
-                    text={current.arabic}
-                    level={config.maskLevel}
-                    onPeek={() => setHintsUsed((n) => n + 1)}
-                    matchedWords={matchedWords}
-                    voiceMode={voiceMode}
-                  />
-                  {config.hideTranslation || config.maskLevel > 0 ? (
-                    <p className="text-text/30 italic text-sm">
-                      — Memory test mode —
-                    </p>
-                  ) : (
-                    <>
-                      {current.transliteration && (
-                        <p className="text-gold-dark/80 italic text-sm">
-                          {current.transliteration}
-                        </p>
-                      )}
-                      {current.banglaTransliteration && (
-                        <p
-                          className="text-gold-dark/70 text-sm bangla-ui"
-                          style={{ fontFamily: 'var(--font-bengali-ui)' }}
-                        >
-                          {current.banglaTransliteration}
-                        </p>
-                      )}
-                      <p
-                        className="text-text/90 text-sm"
-                        style={{ fontFamily: 'var(--font-bengali-ui)' }}
-                      >
-                        {current.bangla}
-                      </p>
-                      <p className="text-text/60 italic text-sm">
-                        &ldquo;{current.english}&rdquo;
-                      </p>
-                    </>
-                  )}
-                </div>
-              );
-            })()}
-          </Card>
-        )}
-
         {/* Ayah mastery grid */}
-        {practiceAyahs.length > 0 && (
-          <Card variant="elevated" className="p-4">
-            <p className="text-xs text-text/50 uppercase tracking-wider mb-3">
-              Ayah Mastery
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {practiceAyahs.map((ayahNum) => {
-                const key = `${config.surahNumber}:${ayahNum}`;
-                const masteryEntry = mastery[key];
-                const isCurrent = ayahNum === currentAyahInSurah;
-                const practiceCount = masteryEntry?.practiceCount ?? 0;
-                const mastered = masteryEntry?.mastered ?? false;
-
-                return (
-                  <div
-                    key={ayahNum}
-                    className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      isCurrent
-                        ? 'bg-gold/20 ring-1 ring-gold/40 scale-105'
-                        : 'bg-surface-highlight/50'
-                    }`}
-                  >
-                    <span className="text-text">{ayahNum}</span>
-                    {mastered ? (
-                      <CheckIcon className="w-3 h-3 text-success" />
-                    ) : (
-                      <span className="text-text/40">{practiceCount}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        )}
-
-        {/* Controls */}
-        {phase === 'playing' && (
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={handlePause}>
-              <PauseIcon className="w-4 h-4 mr-2" />
-              Pause
-            </Button>
-            <Button variant="ghost" className="flex-1" onClick={handleReset}>
-              Stop
-            </Button>
-          </div>
-        )}
+        {masteryGrid}
       </div>
     </div>
   );

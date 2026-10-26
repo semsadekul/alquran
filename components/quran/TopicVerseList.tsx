@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useIntl } from 'react-intl';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { PlayIcon, ShareIcon, BookOpenIcon } from '@/components/ui/Icon';
@@ -20,6 +21,7 @@ export interface DisplayVerse {
 }
 
 export function TopicVerseList({ verses }: { verses: DisplayVerse[] }) {
+  const intl = useIntl();
   const { playFromIndex } = usePlayer();
   const [tafsirAyah, setTafsirAyah] = useState<{ surah: number; ayah: number } | null>(null);
   const [shareAyah, setShareAyah] = useState<DisplayVerse | null>(null);
@@ -60,7 +62,7 @@ export function TopicVerseList({ verses }: { verses: DisplayVerse[] }) {
                   variant="ghost"
                   size="sm"
                   onClick={() => handlePlay(v)}
-                  aria-label="Play recitation"
+                  aria-label={intl.formatMessage({ id: 'topics.playRecitation' })}
                   className="text-gold-dark hover:bg-gold-veil/30 p-2 h-auto"
                 >
                   <PlayIcon className="w-4 h-4" />
@@ -69,7 +71,7 @@ export function TopicVerseList({ verses }: { verses: DisplayVerse[] }) {
                   variant="ghost"
                   size="sm"
                   onClick={() => setTafsirAyah({ surah: v.surahNumber, ayah: v.ayahNumber })}
-                  aria-label="Read Tafsir"
+                  aria-label={intl.formatMessage({ id: 'topics.readTafsir' })}
                   className="text-text-muted hover:text-text p-2 h-auto"
                 >
                   <BookOpenIcon className="w-4 h-4" />
@@ -78,7 +80,7 @@ export function TopicVerseList({ verses }: { verses: DisplayVerse[] }) {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShareAyah(v)}
-                  aria-label="Share Ayah Card"
+                  aria-label={intl.formatMessage({ id: 'topics.shareCard' })}
                   className="text-text-muted hover:text-text p-2 h-auto"
                 >
                   <ShareIcon className="w-4 h-4" />

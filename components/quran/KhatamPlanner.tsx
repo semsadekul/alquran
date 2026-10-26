@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useIntl } from 'react-intl';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +17,7 @@ import {
 import { readStats } from '@/lib/storage';
 
 export function KhatamPlanner() {
+  const intl = useIntl();
   const [plan, setPlan] = useState<KhatamPlan | null>(null);
   const [progress, setProgress] = useState<KhatamProgress | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
@@ -65,7 +67,7 @@ export function KhatamPlanner() {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to cancel your active Khatam plan?')) {
+    if (window.confirm(intl.formatMessage({ id: 'khatam.confirmCancel' }))) {
       deleteKhatamPlan();
       setPlan(null);
       setProgress(null);
@@ -78,47 +80,50 @@ export function KhatamPlanner() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-forest/10 dark:bg-gold-veil text-gold-dark text-xs font-semibold uppercase tracking-wider mb-2">
-              <span>📖</span> Khatam Planner
+              <span>📖</span> {intl.formatMessage({ id: 'khatam.eyebrow' })}
             </div>
-            <h3 className="text-xl font-bold text-text">Finish the Holy Quran</h3>
+            <h3 className="text-xl font-bold text-text">
+              {intl.formatMessage({ id: 'khatam.title' })}
+            </h3>
             <p className="text-sm text-text-muted mt-0.5">
-              Set a structured reading plan with smart daily pacing and streak protection.
+              {intl.formatMessage({ id: 'khatam.desc' })}
             </p>
           </div>
           {isCreating && (
             <Button variant="ghost" size="sm" onClick={() => setIsCreating(false)}>
-              Back
+              {intl.formatMessage({ id: 'khatam.back' })}
             </Button>
           )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
-          {[
-            { days: 30, title: '30 Days', pace: '~20 pages / day', tone: 'Ramadan / Monthly' },
-            { days: 60, title: '60 Days', pace: '~10 pages / day', tone: '2 Months' },
-            { days: 90, title: '90 Days', pace: '~7 pages / day', tone: 'Quarterly' },
-            { days: 365, title: '1 Year', pace: '~2 pages / day', tone: 'Gentle Habit' },
-          ].map((item) => (
+          {[30, 60, 90, 365].map((days) => (
             <button
-              key={item.days}
+              key={days}
               type="button"
-              onClick={() => setSelectedDuration(item.days)}
+              onClick={() => setSelectedDuration(days)}
               className={`p-4 rounded-xl border text-left transition-all ${
-                selectedDuration === item.days
+                selectedDuration === days
                   ? 'border-gold bg-gold-veil/40 ring-1 ring-gold shadow-sm'
                   : 'border-border-subtle bg-surface hover:bg-surface-highlight'
               }`}
             >
-              <p className="font-bold text-text text-base">{item.title}</p>
-              <p className="text-xs text-gold-dark font-medium mt-0.5">{item.pace}</p>
-              <p className="text-[11px] text-text-muted mt-1">{item.tone}</p>
+              <p className="font-bold text-text text-base">
+                {intl.formatMessage({ id: `khatam.plan.${days}.title` })}
+              </p>
+              <p className="text-xs text-gold-dark font-medium mt-0.5">
+                {intl.formatMessage({ id: `khatam.plan.${days}.pace` })}
+              </p>
+              <p className="text-[11px] text-text-muted mt-1">
+                {intl.formatMessage({ id: `khatam.plan.${days}.tone` })}
+              </p>
             </button>
           ))}
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
           <div className="flex items-center gap-2 text-sm text-text">
-            <span>Start from page:</span>
+            <span>{intl.formatMessage({ id: 'khatam.startFromPage' })}</span>
             <input
               type="number"
               min={1}
@@ -127,7 +132,9 @@ export function KhatamPlanner() {
               onChange={(e) => setCustomStartPage(Number(e.target.value))}
               className="w-20 px-2 py-1.5 rounded-lg border border-gold-line bg-surface text-text text-center text-sm font-semibold"
             />
-            <span className="text-xs text-text-muted">(1 to 604)</span>
+            <span className="text-xs text-text-muted">
+              {intl.formatMessage({ id: 'khatam.pageRange' })}
+            </span>
           </div>
 
           <Button
@@ -135,7 +142,7 @@ export function KhatamPlanner() {
             onClick={() => handleStartPlan(selectedDuration)}
             className="w-full sm:w-auto bg-gradient-to-r from-gold to-gold-dark text-white px-6 py-2.5 font-medium shadow-md"
           >
-            Start {selectedDuration}-Day Khatam →
+            {intl.formatMessage({ id: 'khatam.start' }, { days: selectedDuration })}
           </Button>
         </div>
       </Card>
@@ -158,12 +165,12 @@ export function KhatamPlanner() {
 
   const statusLabel =
     status === 'completed'
-      ? 'Khatam Complete! 🎉'
+      ? intl.formatMessage({ id: 'khatam.status.completed' })
       : status === 'ahead'
-        ? 'Ahead of Schedule 🚀'
+        ? intl.formatMessage({ id: 'khatam.status.ahead' })
         : status === 'behind'
-          ? 'Needs Catch-up ⏳'
-          : 'On Track ✨';
+          ? intl.formatMessage({ id: 'khatam.status.behind' })
+          : intl.formatMessage({ id: 'khatam.status.onTrack' });
 
   const statusClass =
     status === 'completed' || status === 'ahead'
@@ -185,7 +192,10 @@ export function KhatamPlanner() {
             </span>
           </div>
           <p className="text-xs text-text-muted">
-            Target: {plan.targetDate} · {daysRemaining} days remaining
+            {intl.formatMessage(
+              { id: 'khatam.target' },
+              { date: plan.targetDate, days: daysRemaining }
+            )}
           </p>
         </div>
 
@@ -194,7 +204,9 @@ export function KhatamPlanner() {
           <span>🛡️</span>
           <div>
             <span className="font-semibold text-text">{shields}/3</span>
-            <span className="text-text-muted ml-1">Shields Active</span>
+            <span className="text-text-muted ml-1">
+              {intl.formatMessage({ id: 'khatam.shieldsActive' })}
+            </span>
           </div>
         </div>
       </div>
@@ -203,9 +215,17 @@ export function KhatamPlanner() {
       <div className="mb-4">
         <div className="flex justify-between text-xs text-text-muted mb-1.5">
           <span>
-            Page <strong className="text-text font-semibold">{plan.currentPage}</strong> of 604 ({pagesCompleted} read)
+            {intl.formatMessage(
+              { id: 'khatam.pageProgress' },
+              {
+                page: <strong className="text-text font-semibold">{plan.currentPage}</strong>,
+                count: pagesCompleted,
+              }
+            )}
           </span>
-          <span className="font-bold text-gold-dark">{percentComplete}% Complete</span>
+          <span className="font-bold text-gold-dark">
+            {intl.formatMessage({ id: 'khatam.percentComplete' }, { percent: percentComplete })}
+          </span>
         </div>
         <div className="w-full h-3 rounded-full bg-surface-highlight overflow-hidden border border-border-subtle p-0.5">
           <div
@@ -218,25 +238,37 @@ export function KhatamPlanner() {
       {/* Pace Summary & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-surface-highlight/50 border border-border-subtle">
         <div className="space-y-0.5">
-          <p className="text-xs text-text-muted">Today&apos;s Recommended Pace</p>
+          <p className="text-xs text-text-muted">
+            {intl.formatMessage({ id: 'khatam.todaysPace' })}
+          </p>
           <p className="text-sm font-semibold text-text">
-            Read <span className="text-gold-dark font-bold">{dailyPacePages} pages</span> today (Page {plan.currentPage} to {Math.min(604, plan.currentPage + dailyPacePages - 1)})
+            {intl.formatMessage(
+              { id: 'khatam.readPace' },
+              {
+                pages: dailyPacePages,
+                from: plan.currentPage,
+                to: Math.min(604, plan.currentPage + dailyPacePages - 1),
+                b: (chunks: React.ReactNode) => (
+                  <span className="text-gold-dark font-bold">{chunks}</span>
+                ),
+              }
+            )}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link href={`/quran/mushaf?page=${plan.currentPage}`}>
             <Button variant="primary" size="sm" className="bg-gradient-to-r from-gold to-gold-dark text-white font-medium">
-              Read Page {plan.currentPage} →
+              {intl.formatMessage({ id: 'khatam.readPage' }, { page: plan.currentPage })}
             </Button>
           </Link>
           <Button variant="outline" size="sm" onClick={handleMarkPage} className="border-gold-line text-text">
-            Mark Page Done ✓
+            {intl.formatMessage({ id: 'khatam.markDone' })}
           </Button>
           <button
             type="button"
             onClick={handleDelete}
-            title="Reset Khatam"
+            title={intl.formatMessage({ id: 'khatam.reset' })}
             className="p-2 text-text-muted hover:text-red-500 rounded-lg hover:bg-surface-highlight transition-colors text-xs"
           >
             ✕

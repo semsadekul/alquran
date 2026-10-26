@@ -1,40 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+
+// In-memory cache for synthesized hadith audio chunks (up to 250 entries)
+const audioCache = new Map<string, Buffer>();
+
+function cleanBengaliForSpeech(text: string): string {
+  let cleaned = text;
+
+  // 1. Expand religious abbreviations & honorifics before removing parens
+  cleaned = cleaned
+    .replace(/\s*\(\s*(?:রাঃ|রা:|রা\.|রাযি\.|রাযিঃ|রাযিয়াল্লাহু আনহু|রাদ্বিয়াল্লাহু আনহু|রাযি)\s*\)/g, ' রাদিয়াল্লাহু আনহু')
+    .replace(/\b(?:রাঃ|রাযিঃ)\b/g, 'রাদিয়াল্লাহু আনহু')
+    .replace(/\s*\(\s*(?:রহঃ|রহ:|রহ\.|রহমাতুল্লাহি আলাইহি|রহ)\s*\)/g, ' রহমাতুল্লাহি আলাইহি')
+    .replace(/\b(?:রহঃ)\b/g, 'রহমাতুল্লাহি আলাইহি')
+    .replace(/\s*\(\s*(?:সাঃ|সা:|সা\.|দঃ|দ\.|সাল্লাল্লাহু আলাইহি ওয়া সাল্লাম|সা)\s*\)/g, ' সাল্লাল্লাহু আলাইহি ওয়া সাল্লাম')
+    .replace(/\b(?:সাঃ|দঃ)\b/g, 'সাল্লাল্লাহু আলাইহি ওয়া সাল্লাম')
+    .replace(/\s*\(\s*(?:আঃ|আ:|আ\.|আলাইহিস সালাম|আ)\s*\)/g, ' আলাইহিস সালাম')
+    .replace(/\b(?:আঃ)\b/g, 'আলাইহিস সালাম');
+
+  // 2. Remove publication / publisher citations at the end of hadiths
+  cleaned = cleaned
+    .replace(/\([০-৯0-9\/,\s:\-–—\.\u0980-\u09FF]*(?:মুসলিম|বুখারী|তিরমিযী|নাসাঈ|আহমদ|ইবনু|প্রকাশনী|ফাউন্ডেশন|তাওহীদ|হাঃ|হাদিস|পর্ব)[০-৯0-9\/,\s:\-–—\.\u0980-\u09FF]*\)/gi, '')
+    // Remove standalone bracketed numbers like (১৪৮১), (২৯৩৪ শেষাংশ)
+    .replace(/\([০-৯0-9\s,\-\/–—\.শেportionsশেষাংশ]+\)/g, '');
+
+  // 3. Normalize Arabic transliteration ayn/hamzah characters that cause speech engine pauses
+  cleaned = cleaned
+    .replace(/তা‘আলা/g, 'তাআলা')
+    .replace(/সা‘ঈদ/g, 'সাঈদ')
+    .replace(/সা‘ঈদী/g, 'সাঈদী')
+    .replace(/নু‘মান/g, 'নুমান')
+    .replace(/মু‘আয/g, 'মুআয')
+    .replace(/কুর্‘আন|কুর‘আন/g, 'কুরআন')
+    .replace(/বিদ‘আত/g, 'বিদআত')
+    .replace(/‘উমার/g, 'উমর')
+    .replace(/‘আমর/g, 'আমর')
+    .replace(/‘আলী/g, 'আলী')
+    .replace(/‘আবদুল্লাহ/g, 'আবদুল্লাহ')
+    .replace(/‘উসমান/g, 'উসমান')
+    .replace(/‘আব্বাস/g, 'আব্বাস')
+    .replace(/‘আয়িশা|‘আইশা/g, 'আয়েশা')
+    .replace(/‘উবাইদাহ/g, 'উবাইদাহ')
+    .replace(/মুগীরাহ/g, 'মুগিরা')
+    .replace(/হুরমুযান/g, 'হুরমুযান')
+    // Remove any remaining standalone single/double quotation marks
+    .replace(/[‘'’`]/g, '');
+
+  // 4. Remove brackets, brackets symbols, dashes, slashes that speech engines vocalize
+  cleaned = cleaned
+    .replace(/["“”«»]/g, ' ')
+    .replace(/[\(\)\[\]{}<>\/\\–—\-_=+*#~]/g, ' ')
+    // Replace colon / bisarga punctuation with natural pause
+    .replace(/[:ঃ]/g, ', ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned;
+}
+
+function cleanArabicForSpeech(text: string): string {
+  let cleaned = text;
+
+  // Remove non-Arabic footnotes, numbers, Latin letters, brackets
+  cleaned = cleaned
+    .replace(/[\(\)\[\]{}«»"“”]/g, ' ')
+    .replace(/[0-9\u0660-\u0669]/g, ' ')
+    .replace(/[a-zA-Z]/g, ' ')
+    .replace(/[\\\/–—\-_=+*#~]/g, ' ')
+    .replace(/[‘'’`]/g, '')
+    // Normalize colons to Arabic comma for natural phrasing
+    .replace(/[:]/g, '، ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned;
+}
 
 function cleanTextForSpeech(text: string, lang: string): string {
   if (!text) return '';
-
-  if (lang === 'bn') {
-    return text
-      // Replace abbreviations with natural spoken words
-      .replace(/\(রাযি\.\)/g, 'রাদিআল্লাহু আনহু')
-      .replace(/\(রহ\.\)/g, 'রহমাতুল্লাহি আলাইহি')
-      .replace(/\(সা\.\)/g, 'সাল্লাল্লাহু আলাইহি ওয়াসাল্লাম')
-      .replace(/\(আ\.\)/g, 'আলাইহিস সালাম')
-      // Remove publisher/book citations at the end in parentheses (e.g., মুসলিম ৩/৫০, হাঃ ৩২২, আধুনিক প্রকাশনী...)
-      .replace(/\([০-৯0-9\/,\s:\-–—\.\u0980-\u09FF]*(?:মুসলিম|বুখারী|তিরমিযী|নাসাঈ|আহমদ|ইবনু|প্রকাশনী|ফাউন্ডেশন|হাঃ)[০-৯0-9\/,\s:\-–—\.\u0980-\u09FF]*\)/g, '')
-      // Remove any remaining bracketed numbers like (১), (২)
-      .replace(/\([০-৯0-9\s,\-\/]+\)/g, '')
-      // Remove brackets, dashes, quotes that speech engines read aloud
-      .replace(/[‘'"`“”]/g, '')
-      .replace(/[\(\)\[\]{}<>\/\\–—\-_=+*#~]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  if (lang === 'ar') {
-    return text
-      // Remove numbers, bracketed footnote citations
-      .replace(/[\(\)\[\]{}0-9\u0660-\u0669]/g, ' ')
-      .replace(/[‘'"`“”]/g, '')
-      .replace(/[\/\\–—\-_=+*#~]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
+  if (lang === 'bn') return cleanBengaliForSpeech(text);
+  if (lang === 'ar') return cleanArabicForSpeech(text);
 
   // English
   return text
     .replace(/\([0-9\s,\-\/:]+\)/g, '')
-    .replace(/[‘'"`“”]/g, '')
+    .replace(/[‘'’`"“”]/g, '')
     .replace(/[\(\)\[\]{}<>\/\\–—\-_=+*#~]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -42,11 +92,13 @@ function cleanTextForSpeech(text: string, lang: string): string {
 
 /**
  * Splits text into small chunks suitable for TTS (max ~180 chars)
+ * respecting punctuation marks to prevent cutting words.
  */
-function splitIntoChunks(text: string, maxLen = 180): string[] {
+function splitIntoChunks(text: string, lang: string, maxLen = 175): string[] {
   if (text.length <= maxLen) return [text];
 
-  const sentences = text.match(/[^।?!.,;\n]+[।?!.,;\n]?/g) || [text];
+  const regex = lang === 'ar' ? /[^،؛.!?\n]+[،؛.!?\n]?/g : /[^।?!.,;\n]+[।?!.,;\n]?/g;
+  const sentences = text.match(regex) || [text];
   const chunks: string[] = [];
   let current = '';
 
@@ -95,8 +147,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Cleaned text is empty' }, { status: 400 });
     }
 
+    // Check in-memory cache
+    const cacheKey = crypto.createHash('md5').update(`${lang}:${cleaned}`).digest('hex');
+    const cachedBuffer = audioCache.get(cacheKey);
+    if (cachedBuffer) {
+      return new NextResponse(new Uint8Array(cachedBuffer), {
+        status: 200,
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          'Content-Length': cachedBuffer.length.toString(),
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+          'X-Audio-Cache': 'HIT',
+        },
+      });
+    }
+
     const ttsLang = lang === 'ar' ? 'ar' : lang === 'bn' ? 'bn' : 'en';
-    const chunks = splitIntoChunks(cleaned, 180);
+    const chunks = splitIntoChunks(cleaned, lang, 175);
 
     const buffers: Buffer[] = [];
 
@@ -122,12 +189,20 @@ export async function POST(req: NextRequest) {
 
     const combined = Buffer.concat(buffers);
 
-    return new NextResponse(combined, {
+    // Save to cache (evict oldest if size > 250)
+    if (audioCache.size >= 250) {
+      const firstKey = audioCache.keys().next().value;
+      if (firstKey) audioCache.delete(firstKey);
+    }
+    audioCache.set(cacheKey, combined);
+
+    return new NextResponse(new Uint8Array(combined), {
       status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
         'Content-Length': combined.length.toString(),
         'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+        'X-Audio-Cache': 'MISS',
       },
     });
   } catch (error: any) {

@@ -41,7 +41,7 @@ export function HadithChapterListClient({ book }: HadithChapterListClientProps) 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="অধ্যায়ের নাম বা হাদিস নম্বর দিয়ে খুঁজুন..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface border border-border-subtle focus:border-gold focus:ring-1 focus:ring-gold text-sm text-text placeholder:text-text-muted shadow-soft transition-all outline-none"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface border border-border-subtle focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/25 text-sm text-text placeholder:text-text-muted shadow-soft transition-all outline-none"
           />
         </div>
         <div className="text-xs text-text-muted self-end sm:self-center px-1 font-mono">

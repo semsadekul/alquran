@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getHadithBook, getHadithChapter, HADITH_BOOKS } from '@/lib/data/hadith-books';
+import { getHadithOverride } from '@/lib/data/hadith-overrides';
 import { HadithReaderClient } from './HadithReaderClient';
 
 interface ChapterPageProps {
@@ -50,15 +51,18 @@ async function fetchChapterData(book: string, chapter: number) {
     text: string;
     grades?: Array<{ name: string; grade: string }>;
     reference?: { book: number; hadith: number };
-  }) => ({
-    hadithNumber: h.hadithnumber,
-    arabicNumber: h.arabicnumber,
-    arabic: araMap.get(h.hadithnumber) || '',
-    bangla: h.text || '',
-    english: engMap.get(h.hadithnumber) || '',
-    grades: h.grades || [],
-    reference: h.reference,
-  }));
+  }) => {
+    const override = getHadithOverride(book, h.hadithnumber);
+    return {
+      hadithNumber: h.hadithnumber,
+      arabicNumber: h.arabicnumber,
+      arabic: araMap.get(h.hadithnumber) || '',
+      bangla: override?.bangla || h.text || '',
+      english: engMap.get(h.hadithnumber) || '',
+      grades: h.grades || [],
+      reference: h.reference,
+    };
+  });
 }
 
 export default async function ChapterReaderPage({ params }: ChapterPageProps) {
