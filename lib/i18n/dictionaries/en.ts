@@ -289,6 +289,7 @@ export const enMessages = {
   'home.hero.read': 'Read',
   'home.tiles.label': 'Shortcuts',
   'home.tile.surah': 'Surah',
+  'home.tile.hadith': 'Hadith',
   'home.tile.duas': 'Duas',
   'home.tile.hifz': 'Hifz',
   'home.tile.stats': 'Stats',

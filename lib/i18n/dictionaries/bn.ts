@@ -288,6 +288,7 @@ export const bnMessages = {
   'home.hero.read': 'পড়ুন',
   'home.tiles.label': 'শর্টকাট',
   'home.tile.surah': 'সূরা',
+  'home.tile.hadith': 'হাদীস',
   'home.tile.duas': 'দোয়া',
   'home.tile.hifz': 'হিফজ',
   'home.tile.stats': 'পরিসংখ্যান',

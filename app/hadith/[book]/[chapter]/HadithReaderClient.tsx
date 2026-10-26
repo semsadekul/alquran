@@ -58,22 +58,54 @@ export function HadithReaderClient({
 
   return (
     <div className="w-full mx-auto pb-20 animate-fade-in">
-      <div className="flex gap-6 xl:gap-8 justify-center">
+      <div className="flex gap-6 xl:gap-8 items-start justify-start">
         {/* ─── Chapter Quick-Nav Sidebar (Desktop Rail) ─── */}
         <aside className="hidden xl:block w-[320px] shrink-0">
           <nav
             aria-label="অধ্যায়সমূহ"
             className="sticky top-20 max-h-[calc(100vh-5.5rem)] flex flex-col rounded-2xl border border-border-subtle bg-surface shadow-soft overflow-hidden"
           >
-            {/* Header with Title & Search */}
-            <div className="p-3.5 border-b border-border-subtle bg-surface/90 backdrop-blur-md space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-gold shrink-0" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-text">
-                    অধ্যায়সমূহ
+            {/* ─── Locked Active Chapter Banner (Always Visible at Top) ─── */}
+            <div className="p-3.5 border-b border-gold-line-strong bg-forest text-forest-ink shadow-sm relative overflow-hidden">
+              <div className="absolute inset-0 islamic-pattern opacity-25 pointer-events-none" />
+
+              <div className="relative z-10 space-y-2">
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-gold-light uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-gold animate-pulse ring-2 ring-gold/40" />
+                    বর্তমানে পড়ছেন
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gold/15 text-gold-dark border border-gold/25 font-mono">
+                  <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-forest-ink font-semibold border border-white/20">
+                    হাদিস {chapter.hadithFirst}–{chapter.hadithLast}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 shrink-0 rounded-xl bg-gold text-forest font-bold text-xs flex items-center justify-center shadow-xs ring-1 ring-gold-light/40">
+                    {chapter.id}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="bangla-ui text-[13.5px] font-bold text-forest-ink leading-tight truncate" title={chapter.nameBn}>
+                      {chapter.nameBn}
+                    </p>
+                    {chapter.nameEn && (
+                      <p className="text-[11px] text-forest-ink/80 truncate font-medium mt-0.5" title={chapter.nameEn}>
+                        {chapter.nameEn}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Header with Title & Search */}
+            <div className="p-3 border-b border-border-subtle bg-surface/90 backdrop-blur-md space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                    সকল অধ্যায়
+                  </span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-gold/15 text-gold-dark border border-gold/25 font-mono">
                     {book.totalChapters}
                   </span>
                 </div>
@@ -96,8 +128,8 @@ export function HadithReaderClient({
                   type="text"
                   value={chapterFilter}
                   onChange={(e) => setChapterFilter(e.target.value)}
-                  placeholder="অধ্যায় বা হাদিস খুঁজুন..."
-                  className="w-full pl-9 pr-7 py-2 rounded-xl bg-surface-highlight/70 border border-border-subtle focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/30 text-xs text-text placeholder:text-text-muted transition-all outline-none"
+                  placeholder="অধ্যায় খুঁজুন..."
+                  className="w-full pl-9 pr-7 py-1.5 rounded-xl bg-surface-highlight/70 border border-border-subtle focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/30 text-xs text-text placeholder:text-text-muted transition-all outline-none"
                 />
                 {chapterFilter && (
                   <button
@@ -112,8 +144,8 @@ export function HadithReaderClient({
               </div>
             </div>
 
-            {/* Chapters list */}
-            <ol className="overflow-y-auto p-2.5 space-y-1.5 scroll-smooth divide-y-0">
+            {/* Chapters list (Scrollable) */}
+            <ol className="overflow-y-auto p-2.5 space-y-1.5 scroll-smooth divide-y-0 flex-1">
               {filteredChapters.length === 0 ? (
                 <li className="p-6 text-center text-xs text-text-muted">
                   <p>কোন অধ্যায় মেলেনি</p>
@@ -204,7 +236,7 @@ export function HadithReaderClient({
         </aside>
 
         {/* ─── Main Reader Content ─── */}
-        <div className="flex-1 min-w-0 max-w-4xl">
+        <div className="flex-1 min-w-0 max-w-4xl xl:max-w-5xl">
           {/* ─── Breadcrumb & Quick Controls ─── */}
           <div className="flex flex-wrap items-center justify-between gap-3 py-3 border-b border-border-subtle mb-6">
             <nav className="flex items-center gap-2 text-xs text-text-muted">

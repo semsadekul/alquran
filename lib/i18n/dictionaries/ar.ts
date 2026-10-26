@@ -288,6 +288,7 @@ export const arMessages = {
   'home.hero.read': 'اقرأ',
   'home.tiles.label': 'اختصارات',
   'home.tile.surah': 'السور',
+  'home.tile.hadith': 'الحديث',
   'home.tile.duas': 'الأدعية',
   'home.tile.hifz': 'الحفظ',
   'home.tile.stats': 'الإحصائيات',

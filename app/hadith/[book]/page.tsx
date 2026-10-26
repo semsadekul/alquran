@@ -28,7 +28,7 @@ export default function BookChaptersPage({ params }: BookPageProps) {
 
   return (
     <div className="w-full mx-auto pb-16 animate-fade-in">
-      <div className="flex gap-8">
+      <div className="flex gap-8 items-start justify-start">
         {/* ─── Chapter quick-nav rail — fills the left gutter on wide screens ─── */}
         <aside className="hidden xl:block w-[320px] shrink-0">
           <nav
@@ -81,7 +81,7 @@ export default function BookChaptersPage({ params }: BookPageProps) {
           </nav>
         </aside>
 
-        <div className="flex-1 min-w-0 max-w-4xl">
+        <div className="flex-1 min-w-0 max-w-4xl xl:max-w-5xl">
         {/* ─── Navigation Breadcrumb ─── */}
         <nav className="flex items-center gap-2 text-xs text-text-muted py-3 px-1 mb-4">
           <Link href="/" className="hover:text-gold-dark transition-colors">

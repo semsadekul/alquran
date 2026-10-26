@@ -109,7 +109,7 @@ export default function RootLayout({
                       <div className="lg:pl-72">
                         <TopBar />
                         <main className="min-h-screen pb-24 sm:pb-20 lg:pb-0">
-                          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                          <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
                             {children}
                           </div>
                         </main>
